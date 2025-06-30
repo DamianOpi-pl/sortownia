@@ -1,6 +1,10 @@
 #!/bin/bash
 set -e
 
+# Ensure data directory exists
+echo "Ensuring data directory exists..."
+mkdir -p /app/data
+
 # Apply database migrations
 echo "Applying database migrations..."
 python manage.py migrate

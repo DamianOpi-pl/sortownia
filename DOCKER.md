@@ -48,7 +48,7 @@ To create an admin user automatically when the container starts, uncomment and c
 
 The Docker setup persists data in the following ways:
 
-- Database: The SQLite database is stored in a volume at `./db.sqlite3`
+- Database: The SQLite database is stored in a volume at `./data/db.sqlite3`
 - Static files: Static files are stored in a volume at `./staticfiles`
 
 ## Common Tasks
@@ -104,7 +104,7 @@ docker-compose up -d
 For production use, you might want to switch from SQLite to PostgreSQL. To do this:
 
 1. Uncomment the PostgreSQL configuration in `sortownia_project/settings.py`
-2. Add PostgreSQL service to `docker-compose.yml`:
+3. Add PostgreSQL service to `docker-compose.yml`:
 
 ```yaml
 services:
@@ -125,6 +125,9 @@ services:
     environment:
       # ... existing environment variables
       - DATABASE_URL=postgres://postgres:postgres@db:5432/sortownia
+    volumes:
+      - ./staticfiles:/app/staticfiles
+      # Remove the data volume when using PostgreSQL
 
 volumes:
   postgres_data:
@@ -135,6 +138,29 @@ volumes:
    psycopg2-binary==2.9.6
    dj-database-url==2.1.0
    ```
+
+## Production Deployment Considerations
+
+## Troubleshooting
+
+### Volume Mount Issues
+
+If you encounter an error about mounting volumes, particularly with the database file, ensure that:
+
+1. The `data` directory exists in your project folder
+2. If you previously had a different volume setup, you might need to remove the containers and volumes:
+   ```bash
+   docker-compose down -v
+   docker-compose up -d
+   ```
+
+### Database File Permissions
+
+If you encounter permission issues with the database file, you can fix them with:
+
+```bash
+sudo chown -R $(id -u):$(id -g) ./data
+```
 
 ## Production Deployment Considerations
 

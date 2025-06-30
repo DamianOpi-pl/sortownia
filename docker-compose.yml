@@ -6,7 +6,7 @@ services:
     container_name: sortownia-app
     restart: always
     volumes:
-      - ./db.sqlite3:/app/db.sqlite3
+      - ./data:/app/data
       - ./staticfiles:/app/staticfiles
     ports:
       - "8000:8000"

@@ -13,7 +13,7 @@ SECRET_KEY = 'django-insecure-sortownia-secret-key-12345'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = [os.environ.get('DJANGO_ALLOWED_HOSTS', 'localhost'),]
 
 
 # Application definition

@@ -1,0 +1,180 @@
+{% extends 'sortapp/base.html' %}
+
+{% block title %}{{ title }} - Sortownia{% endblock %}
+
+{% block extra_css %}
+<style>
+    .employee-icon-preview {
+        width: 100px;
+        height: 100px;
+        margin: 20px auto;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+        font-size: 2.5rem;
+        color: white;
+    }
+    .color-sample {
+        width: 30px;
+        height: 30px;
+        display: inline-block;
+        border-radius: 4px;
+        margin-right: 10px;
+        vertical-align: middle;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="page-header">
+        <h1>{{ title }}</h1>
+        <a href="{% url 'employee_settings' %}" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-left"></i> Powrót do pracowników
+        </a>
+    </div>
+
+    <div class="row mt-4">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-user"></i> 
+                        {{ title }}
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <form method="post">
+                        {% csrf_token %}
+                        
+                        {% if form.non_field_errors %}
+                            <div class="alert alert-danger">
+                                {{ form.non_field_errors }}
+                            </div>
+                        {% endif %}
+                        
+                        <div class="mb-3">
+                            <label for="{{ form.name.id_for_label }}" class="form-label">{{ form.name.label }}</label>
+                            {{ form.name }}
+                            {% if form.name.errors %}
+                                <div class="text-danger">{{ form.name.errors }}</div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="{{ form.icon_color.id_for_label }}" class="form-label">{{ form.icon_color.label }}</label>
+                            <div class="d-flex align-items-center">
+                                {{ form.icon_color }}
+                                <span class="ms-2">{{ form.icon_color.value }}</span>
+                            </div>
+                            {% if form.icon_color.errors %}
+                                <div class="text-danger">{{ form.icon_color.errors }}</div>
+                            {% endif %}
+                            <small class="form-text text-muted">{{ form.icon_color.help_text }}</small>
+                        </div>
+                        
+                        <!-- Employee Preview -->
+                        <div class="text-center mt-4 mb-3">
+                            <h6>Podgląd ikony pracownika:</h6>
+                            {% with initials=employee.name|default:""|cut:" "|make_list|slice:":2"|join:""|default:"??" %}
+                                <div id="employee-preview" class="employee-icon-preview" style="background-color: {{ form.icon_color.value }};">
+                                    <span id="employee-initials">{{ initials|upper }}</span>
+                                </div>
+                            {% endwith %}
+                            <p class="text-muted small">Inicjały są generowane automatycznie z imienia i nazwiska</p>
+                        </div>
+                        
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save"></i> {{ action }}
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0"><i class="fas fa-info-circle"></i> Pomoc</h5>
+                </div>
+                <div class="card-body">
+                    <h5>Dodawanie pracownika</h5>
+                    <p>Wprowadź imię i nazwisko pracownika oraz wybierz kolor ikony, który będzie używany do identyfikacji pracownika w interfejsie aplikacji.</p>
+                    
+                    <h5 class="mt-4">Kolory ikon</h5>
+                    <p>Wybierz wyrazisty kolor, który będzie dobrze kontrastował z białym tekstem. Zalecane kolory:</p>
+                    <div class="d-flex flex-wrap">
+                        <div class="me-2 mb-2 text-center">
+                            <div style="width: 40px; height: 40px; background-color: #3498db; border-radius: 5px;"></div>
+                            <div class="small">#3498db</div>
+                        </div>
+                        <div class="me-2 mb-2 text-center">
+                            <div style="width: 40px; height: 40px; background-color: #e74c3c; border-radius: 5px;"></div>
+                            <div class="small">#e74c3c</div>
+                        </div>
+                        <div class="me-2 mb-2 text-center">
+                            <div style="width: 40px; height: 40px; background-color: #2ecc71; border-radius: 5px;"></div>
+                            <div class="small">#2ecc71</div>
+                        </div>
+                        <div class="me-2 mb-2 text-center">
+                            <div style="width: 40px; height: 40px; background-color: #f39c12; border-radius: 5px;"></div>
+                            <div class="small">#f39c12</div>
+                        </div>
+                        <div class="me-2 mb-2 text-center">
+                            <div style="width: 40px; height: 40px; background-color: #9b59b6; border-radius: 5px;"></div>
+                            <div class="small">#9b59b6</div>
+                        </div>
+                        <div class="me-2 mb-2 text-center">
+                            <div style="width: 40px; height: 40px; background-color: #1abc9c; border-radius: 5px;"></div>
+                            <div class="small">#1abc9c</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const nameInput = document.getElementById('{{ form.name.id_for_label }}');
+        const colorInput = document.getElementById('{{ form.icon_color.id_for_label }}');
+        const preview = document.getElementById('employee-preview');
+        const initialsSpan = document.getElementById('employee-initials');
+        
+        // Update preview when name changes
+        nameInput.addEventListener('input', function() {
+            // Extract initials from the name
+            const name = this.value.trim();
+            let initials = '';
+            
+            if (name) {
+                const nameParts = name.split(' ');
+                nameParts.forEach(part => {
+                    if (part && initials.length < 2) {
+                        initials += part[0];
+                    }
+                });
+            }
+            
+            // If we couldn't extract initials, use "??"
+            if (!initials) {
+                initials = '??';
+            }
+            
+            initialsSpan.textContent = initials.toUpperCase();
+        });
+        
+        // Update preview color when color input changes
+        colorInput.addEventListener('input', function() {
+            preview.style.backgroundColor = this.value;
+        });
+    });
+</script>
+{% endblock %}

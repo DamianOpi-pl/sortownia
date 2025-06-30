@@ -1,0 +1,17 @@
+version: '3.8'
+
+services:
+  web:
+    build: .
+    container_name: sortownia-app
+    restart: always
+    volumes:
+      - ./db.sqlite3:/app/db.sqlite3
+      - ./staticfiles:/app/staticfiles
+    ports:
+      - "8000:8000"
+    command: gunicorn --bind 0.0.0.0:8000 sortownia_project.wsgi:application
+    environment:
+      - DJANGO_DEBUG=False
+      - DJANGO_ALLOWED_HOSTS=localhost,157.230.20.29
+      - DJANGO_SECRET_KEY=3rw3f2-32mM6^54fJJhh22H22Z

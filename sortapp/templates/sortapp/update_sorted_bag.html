@@ -1,0 +1,376 @@
+{% extends 'sortapp/base.html' %}
+{% load sorting_extras %}
+
+{% block title %}Edytuj posortowaną torbę (S-bag) - Sortownia Odzieży{% endblock %}
+
+{% block header %}Edytuj posortowaną torbę (S-bag){% endblock %}
+
+{% block extra_css %}
+<style>
+    .form-section {
+        background-color: white;
+        border-radius: 10px;
+        padding: 25px;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        margin-bottom: 20px;
+    }
+
+    .form-section-title {
+        margin-bottom: 20px;
+        font-weight: 600;
+        color: #333;
+        display: flex;
+        align-items: center;
+    }
+
+    .category-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 15px;
+        margin-bottom: 20px;
+    }
+
+    @media (min-width: 768px) {
+        .category-grid {
+            grid-template-columns: repeat(4, 1fr);
+        }
+    }
+
+    .category-card {
+        border-radius: 15px;
+        transition: all 0.3s ease;
+        cursor: pointer;
+        height: 140px;
+        margin-bottom: 20px;
+        overflow: hidden;
+        position: relative;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        -webkit-tap-highlight-color: rgba(0,0,0,0);
+    }
+
+    .category-card.selected {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+        border: 3px solid #fff;
+    }
+
+    .category-card input[type="radio"] {
+        position: absolute;
+        opacity: 0;
+    }
+
+    .category-card .card-body {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        color: white;
+        text-align: center;
+        height: 100%;
+        width: 100%;
+        padding: 15px;
+    }
+
+    .category-card i {
+        font-size: 2.5rem;
+        margin-bottom: 8px;
+    }
+
+    .category-card .category-name {
+        font-weight: 500;
+        font-size: 1.2rem;
+    }
+
+    .weight-adjust {
+        min-width: 42px;
+        padding: 0.375rem 0.25rem;
+        font-weight: 500;
+        transition: all 0.2s ease;
+    }
+
+    .weight-adjust:active {
+        transform: scale(0.95);
+    }
+
+    .weight-buttons {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-top: 10px;
+    }
+
+    .input-group .form-control {
+        border-top-right-radius: 4px;
+        border-bottom-right-radius: 4px;
+        font-size: 1.2rem;
+        height: 48px;
+    }
+
+    .bag-details {
+        background-color: #f8f9fa;
+        border-radius: 10px;
+        padding: 15px;
+        margin-bottom: 20px;
+    }
+
+    .bag-details-title {
+        font-weight: 600;
+        margin-bottom: 15px;
+    }
+
+    .detail-row {
+        display: flex;
+        margin-bottom: 10px;
+        align-items: center;
+    }
+
+    .detail-label {
+        flex: 0 0 150px;
+        font-weight: 500;
+        color: #6c757d;
+    }
+
+    .detail-value {
+        flex: 1;
+    }
+
+    .category-badge {
+        padding: 6px 10px;
+        border-radius: 20px;
+        color: white;
+        font-weight: 500;
+        display: inline-block;
+        min-width: 100px;
+        text-align: center;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <div class="bag-details">
+                <h5 class="bag-details-title"><i class="fas fa-info-circle me-2"></i> Szczegóły torby</h5>
+                <div class="detail-row">
+                    <div class="detail-label">Numer torby:</div>
+                    <div class="detail-value"><strong>{{ bag.bag_number }}</strong></div>
+                </div>
+                <div class="detail-row">
+                    <div class="detail-label">Kategoria:</div>
+                    <div class="detail-value">
+                        <span class="category-badge" style="background-color: {{ bag.clothing_category.color }}">
+                            <i class="fas {{ bag.clothing_category.icon }} me-2"></i> {{ bag.clothing_category.name }}
+                        </span>
+                    </div>
+                </div>
+                <div class="detail-row">
+                    <div class="detail-label">Waga:</div>
+                    <div class="detail-value">{{ bag.weight|default:"0" }} kg</div>
+                </div>
+                <div class="detail-row">
+                    <div class="detail-label">Data utworzenia:</div>
+                    <div class="detail-value">{{ bag.created_at|date:"d.m.Y H:i" }}</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <form method="post" id="updateBagForm">
+        {% csrf_token %}
+
+        <!-- Category Selection Section -->
+        <div class="form-section">
+            <h2 class="form-section-title">
+                <i class="fas fa-tags me-2"></i> Kategoria posortowanej odzieży
+            </h2>
+            <div class="category-grid">
+                {% for category in sorted_categories %}
+                <div class="category-card" style="background-color: {{ category.color }};" onclick="document.getElementById('id_clothing_category_{{ category.id }}').click();">
+                    <input type="radio" name="{{ form.clothing_category.name }}"
+                           value="{{ category.id }}"
+                           id="id_clothing_category_{{ category.id }}"
+                           class="category-radio"
+                           {% if form.clothing_category.value == category.id or bag.clothing_category.id == category.id %}checked{% endif %}>
+                    <div class="card-body" style="padding: 15px; width: 100%; height: 100%;">
+                        <i class="fas {{ category.icon }}"></i>
+                        <div class="category-name">{{ category.name }}</div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% if form.clothing_category.errors %}
+            <div class="alert alert-danger mt-3">
+                {{ form.clothing_category.errors }}
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Weight Section -->
+        <div class="form-section">
+            <h2 class="form-section-title">
+                <i class="fas fa-weight me-2"></i> Waga torby
+            </h2>
+            <div class="mb-4">
+                <label for="{{ form.weight.id_for_label }}" class="form-label">{{ form.weight.label }}</label>
+                <div class="mb-2">
+                    {{ form.weight }}
+                </div>
+                <div class="alert alert-info mt-2 mb-2">
+                    <i class="fas fa-info-circle me-2"></i> Wprowadź całkowitą wagę posortowanej odzieży w kilogramach
+                </div>
+                <div class="weight-actions mt-2 mb-1">
+                    <button type="button" class="btn btn-sm btn-outline-secondary" id="clearWeightBtn">Wyczyść</button>
+                    <button type="button" class="btn btn-sm btn-outline-secondary" id="resetWeightBtn">Resetuj</button>
+                </div>
+                <div class="form-text mb-2">Użyj przycisków poniżej, aby szybko zmienić wagę:</div>
+                <div class="weight-buttons">
+                    <button type="button" class="btn btn-outline-danger weight-adjust" data-amount="-5">-5</button>
+                    <button type="button" class="btn btn-outline-danger weight-adjust" data-amount="-1">-1</button>
+                    <button type="button" class="btn btn-outline-success weight-adjust" data-amount="1">+1</button>
+                    <button type="button" class="btn btn-outline-success weight-adjust" data-amount="5">+5</button>
+                    <button type="button" class="btn btn-outline-success weight-adjust" data-amount="10">+10</button>
+                    <button type="button" class="btn btn-outline-success weight-adjust" data-amount="20">+20</button>
+                </div>
+                <div class="form-text mt-2">{{ form.weight.help_text }}</div>
+                {% if form.weight.errors %}
+                <div class="alert alert-danger mt-2">
+                    {{ form.weight.errors }}
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Employee Selection Section -->
+        <div class="form-section">
+            <h2 class="form-section-title">
+                <i class="fas fa-users me-2"></i> Przygotowane przez
+            </h2>
+            <div class="mb-4">
+                <label for="{{ form.prepared_by.id_for_label }}" class="form-label">{{ form.prepared_by.label }}</label>
+                {{ form.prepared_by }}
+                <div class="form-text">{{ form.prepared_by.help_text }}</div>
+                {% if form.prepared_by.errors %}
+                <div class="alert alert-danger mt-2">
+                    {{ form.prepared_by.errors }}
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Original Bag Selection Section (Optional) -->
+        <div class="form-section">
+            <h2 class="form-section-title">
+                <i class="fas fa-box me-2"></i> Worek źródłowy (opcjonalnie)
+            </h2>
+            <div class="mb-4">
+                <label for="{{ form.original_bag.id_for_label }}" class="form-label">{{ form.original_bag.label }}</label>
+                {{ form.original_bag }}
+                <div class="form-text">{{ form.original_bag.help_text }}</div>
+                {% if form.original_bag.errors %}
+                <div class="alert alert-danger mt-2">
+                    {{ form.original_bag.errors }}
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="d-flex justify-content-between mb-4">
+            <a href="{% url 'sorted_bags' %}" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left me-2"></i> Powrót do listy
+            </a>
+            <button type="submit" class="btn btn-primary">
+                <i class="fas fa-save me-2"></i> Zapisz zmiany
+            </button>
+        </div>
+    </form>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Form elements
+        const weightInput = document.getElementById('{{ form.weight.id_for_label }}');
+        const categoryCards = document.querySelectorAll('.category-card');
+
+        // Set initial selected state for category cards
+        categoryCards.forEach(card => {
+            const radio = card.querySelector('input[type="radio"]');
+            if (radio && radio.checked) {
+                card.classList.add('selected');
+            }
+
+            // Add click event listener
+            card.addEventListener('click', function() {
+                // Remove selected class from all cards
+                categoryCards.forEach(c => c.classList.remove('selected'));
+
+                // Add selected class to clicked card
+                card.classList.add('selected');
+
+                // Check the radio button
+                const radio = card.querySelector('input[type="radio"]');
+                if (radio) {
+                    radio.checked = true;
+                    radio.dispatchEvent(new Event('change', { bubbles: true }));
+                }
+
+                // Add some visual feedback
+                card.style.transform = 'scale(1.05)';
+                setTimeout(() => {
+                    card.style.transform = '';
+                }, 200);
+            });
+        });
+
+        // Clear and reset weight buttons
+        document.getElementById('clearWeightBtn').addEventListener('click', function() {
+            weightInput.value = "";
+            weightInput.focus();
+        });
+
+        document.getElementById('resetWeightBtn').addEventListener('click', function() {
+            weightInput.value = "{{ bag.weight|default:'0' }}";
+            weightInput.focus();
+            weightInput.select();
+        });
+
+        // Handle weight adjustment buttons
+        document.querySelectorAll('.weight-adjust').forEach(button => {
+            button.addEventListener('click', function() {
+                const amount = parseInt(this.dataset.amount);
+                const currentValue = parseInt(weightInput.value) || 0;
+
+                // Calculate new value as integer
+                const newValue = Math.max(0, currentValue + amount);
+
+                // Update value as integer
+                weightInput.value = newValue > 0 ? newValue : "0";
+
+                // Provide visual feedback for the change
+                weightInput.style.backgroundColor = "#e8f4fc";
+                setTimeout(() => {
+                    weightInput.style.backgroundColor = "#f8f9fa";
+                }, 200);
+
+                // Select all text after changing the value
+                weightInput.select();
+
+                // Add visual feedback
+                this.classList.add('active');
+                setTimeout(() => {
+                    this.classList.remove('active');
+                }, 150);
+
+                // Focus back on the weight input
+                weightInput.focus();
+            });
+        });
+    });
+</script>
+{% endblock %}

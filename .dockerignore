@@ -1,0 +1,34 @@
+# Virtual Environment
+venv/
+__pycache__/
+*.py[cod]
+*$py.class
+
+# SQLite database
+#db.sqlite3
+
+# Git
+.git
+.gitignore
+
+# Development environment
+.idea/
+.vscode/
+*.swp
+*.swo
+.DS_Store
+
+# Static files
+#staticfiles/
+
+# Rope project
+.ropeproject/
+
+# Local environment variables
+.env
+.env.local
+
+# Docker
+Dockerfile
+docker-compose.yml
+.dockerignore

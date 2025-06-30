@@ -1,0 +1,258 @@
+{% extends 'sortapp/base.html' %}
+{% load sorting_extras %}
+
+{% block title %}Statystyki posortowanych toreb (S-bags) - Sortownia Odzieży{% endblock %}
+
+{% block header %}Statystyki posortowanych toreb (S-bags){% endblock %}
+
+{% block extra_css %}
+<style>
+    .stats-card {
+        border-radius: 10px;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        margin-bottom: 20px;
+        transition: all 0.3s ease;
+        overflow: hidden;
+    }
+
+    .stats-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 16px rgba(0,0,0,0.2);
+    }
+
+    .stats-card-header {
+        padding: 15px 20px;
+        background-color: #f8f9fa;
+        border-bottom: 1px solid rgba(0,0,0,0.05);
+        font-weight: 600;
+    }
+
+    .stats-card-body {
+        padding: 20px;
+        background-color: white;
+    }
+
+    .date-filter-form {
+        background-color: white;
+        border-radius: 10px;
+        padding: 20px;
+        margin-bottom: 30px;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+
+    .stats-value {
+        font-size: 2.5rem;
+        font-weight: bold;
+        margin-bottom: 10px;
+        color: #3498db;
+    }
+
+    .stats-label {
+        color: #6c757d;
+        font-size: 1rem;
+    }
+
+    .stats-table th {
+        font-weight: 600;
+    }
+
+    .stats-bar {
+        height: 8px;
+        border-radius: 4px;
+        background-color: #e9ecef;
+        margin-top: 5px;
+        margin-bottom: 10px;
+        overflow: hidden;
+    }
+
+    .stats-bar-fill {
+        height: 100%;
+        border-radius: 4px;
+    }
+
+    .employee-badge {
+        display: inline-flex;
+        align-items: center;
+        padding: 5px 10px;
+        border-radius: 20px;
+        background-color: #f8f9fa;
+        font-weight: 500;
+    }
+
+    .employee-initials {
+        width: 30px;
+        height: 30px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+        color: white;
+        margin-right: 8px;
+    }
+
+    .category-badge {
+        padding: 6px 10px;
+        border-radius: 20px;
+        color: white;
+        font-weight: 500;
+        display: inline-block;
+        min-width: 100px;
+        text-align: center;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="date-filter-form">
+            <h5 class="mb-3"><i class="fas fa-calendar-alt me-2"></i> Wybierz datę</h5>
+            <form method="get" action="{% url 'sorted_bag_stats' %}" class="row g-3 align-items-end">
+                <div class="col-md-6">
+                    {{ form.date }}
+                </div>
+                <div class="col-md-6">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-filter me-2"></i> Pokaż statystyki
+                    </button>
+                    <a href="{% url 'sorted_bags' %}" class="btn btn-outline-secondary ms-2">
+                        <i class="fas fa-list me-2"></i> Lista toreb
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-12 mb-4">
+        <div class="alert alert-info">
+            <i class="fas fa-info-circle me-2"></i> Wyświetlanie statystyk posortowanych toreb (S-bags) dla dnia: <strong>{{ current_date }}</strong>
+        </div>
+    </div>
+</div>
+
+<!-- Main Stats -->
+<div class="row mb-5">
+    <div class="col-md-6">
+        <div class="stats-card">
+            <div class="stats-card-header">
+                <i class="fas fa-weight me-2"></i> Łączna waga posortowanych toreb
+            </div>
+            <div class="stats-card-body text-center">
+                <div class="stats-value">{{ total_weight|format_weight }}</div>
+                <div class="stats-label">kilogramów posortowanej odzieży</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6">
+        <div class="stats-card">
+            <div class="stats-card-header">
+                <i class="fas fa-users me-2"></i> Pracownicy
+            </div>
+            <div class="stats-card-body text-center">
+                <div class="stats-value">{{ employee_stats|length }}</div>
+                <div class="stats-label">pracowników przygotowało posortowane torby</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Employee Stats -->
+<div class="row">
+    <div class="col-md-6">
+        <div class="stats-card">
+            <div class="stats-card-header">
+                <i class="fas fa-medal me-2"></i> Statystyki pracowników
+            </div>
+            <div class="stats-card-body">
+                {% if employee_stats %}
+                    <div class="table-responsive">
+                        <table class="table stats-table">
+                            <thead>
+                                <tr>
+                                    <th>Pracownik</th>
+                                    <th>Waga</th>
+                                    <th>Torby</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for stat in employee_stats %}
+                                    <tr>
+                                        <td>
+                                            <span class="employee-badge">
+                                                <span class="employee-initials" style="background-color: #3498db;">
+                                                    {{ stat.prepared_by__name|first|upper }}
+                                                </span>
+                                                {{ stat.prepared_by__name }}
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <strong>{{ stat.total_sorted|format_weight }}</strong>
+                                            <div class="stats-bar">
+                                                <div class="stats-bar-fill" style="width: {{ stat.total_sorted|div:total_weight|mul:100 }}%; background-color: #3498db;"></div>
+                                            </div>
+                                        </td>
+                                        <td>{{ stat.bag_count }}</td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="alert alert-warning">
+                        <i class="fas fa-exclamation-triangle me-2"></i> Brak danych o pracownikach dla wybranej daty.
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6">
+        <div class="stats-card">
+            <div class="stats-card-header">
+                <i class="fas fa-tags me-2"></i> Statystyki kategorii
+            </div>
+            <div class="stats-card-body">
+                {% if category_stats %}
+                    <div class="table-responsive">
+                        <table class="table stats-table">
+                            <thead>
+                                <tr>
+                                    <th>Kategoria</th>
+                                    <th>Waga</th>
+                                    <th>Torby</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for stat in category_stats %}
+                                    <tr>
+                                        <td>
+                                            <span class="category-badge" style="background-color: {{ stat.clothing_category__color }}">
+                                                {{ stat.clothing_category__name }}
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <strong>{{ stat.total_weight|format_weight }}</strong>
+                                            <div class="stats-bar">
+                                                <div class="stats-bar-fill" style="width: {{ stat.total_weight|div:total_weight|mul:100 }}%; background-color: {{ stat.clothing_category__color }};"></div>
+                                            </div>
+                                        </td>
+                                        <td>{{ stat.bag_count }}</td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="alert alert-warning">
+                        <i class="fas fa-exclamation-triangle me-2"></i> Brak danych o kategoriach dla wybranej daty.
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

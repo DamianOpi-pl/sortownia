@@ -1,0 +1,1085 @@
+{% extends 'sortapp/base.html' %}
+
+{% block title %}Zarejestruj nowy worek - Sortownia Odzieży{% endblock %}
+
+{% block header %}Zarejestruj nowy worek{% endblock %}
+
+{% block extra_css %}
+<style>
+    .category-card {
+        border-radius: 15px;
+        transition: all 0.3s ease;
+        cursor: pointer;
+        height: 140px;
+        margin-bottom: 20px;
+        overflow: hidden;
+        position: relative;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        -webkit-tap-highlight-color: rgba(0,0,0,0);
+    }
+
+    .category-card.selected {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+        border: 3px solid #fff;
+    }
+
+    .category-card input[type="radio"] {
+        position: absolute;
+        opacity: 0;
+    }
+
+    .category-card .card-body {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        color: white;
+        text-align: center;
+        height: 100%;
+        width: 100%;
+    }
+
+    .category-card i {
+        font-size: 2.5rem;
+        margin-bottom: 8px;
+    }
+
+    .category-card .category-name {
+        font-size: 1.1rem;
+        font-weight: bold;
+        text-shadow: 0 1px 2px rgba(0,0,0,0.2);
+    }
+
+    .form-section {
+        background-color: white;
+        border-radius: 15px;
+        padding: 20px;
+        margin-bottom: 30px;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    }
+
+    .form-section-title {
+        font-size: 1.5rem;
+        margin-bottom: 20px;
+        color: #3498db;
+        font-weight: bold;
+    }
+
+    .btn-tablet {
+        padding: 15px 30px;
+        font-size: 1.25rem;
+        border-radius: 10px;
+    }
+
+    /* Hide the original radio buttons */
+    .category-radio {
+        display: none;
+    }
+
+    /* Large form controls for tablet */
+    .form-control-lg, .form-select-lg {
+        height: 60px;
+        font-size: 1.25rem;
+    }
+
+    label {
+        font-size: 1.2rem;
+        font-weight: 500;
+    }
+
+    /* Custom employee selection styling */
+    .employee-select-container {
+        margin-bottom: 20px;
+        background-color: #f8f9fa;
+        border-radius: 8px;
+        padding: 20px;
+    }
+
+    .employee-selection {
+        position: relative;
+        display: block;
+        height: 60px;
+    }
+
+    .employee-selection select {
+        width: 100%;
+        height: 60px;
+        padding: 0 12px 0 68px;
+        font-size: 1.1rem;
+        border-radius: 8px;
+        border: 1px solid #ced4da;
+        appearance: none;
+        background-color: white;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='%23212529' viewBox='0 0 16 16'%3E%3Cpath d='M7.247 11.14L2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z'/%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-position: right 12px center;
+        background-size: 16px 12px;
+    }
+
+    /* Employee selection grid */
+    .employee-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 15px;
+        margin-top: 20px;
+        margin-bottom: 20px;
+    }
+
+    @media (min-width: 576px) {
+        .employee-grid {
+            grid-template-columns: repeat(3, 1fr);
+        }
+    }
+
+    @media (min-width: 992px) {
+        .employee-grid {
+            grid-template-columns: repeat(4, 1fr);
+        }
+    }
+
+    .employee-card {
+        border-radius: 15px;
+        transition: all 0.3s ease;
+        cursor: pointer;
+        margin-bottom: 20px;
+        color: white;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        padding: 0;
+        text-align: center;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        height: 100%;
+        position: relative;
+        overflow: hidden;
+        min-height: 120px;
+        -webkit-tap-highlight-color: rgba(0,0,0,0);
+        user-select: none;
+        cursor: pointer;
+    }
+
+    .employee-card.selected {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+        border: 3px solid white;
+        filter: brightness(110%);
+    }
+
+    .employee-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+        filter: brightness(105%);
+    }
+
+    .employee-card input[type="radio"] {
+        position: absolute;
+        opacity: 0;
+    }
+
+    .employee-initials {
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        color: white;
+        background-color: rgba(255, 255, 255, 0.2);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 15px auto;
+        font-size: 1.5rem;
+        font-weight: bold;
+        text-shadow: 0 1px 2px rgba(0,0,0,0.2);
+        border: 2px solid rgba(255, 255, 255, 0.5);
+    }
+
+    .employee-name {
+        font-weight: 600;
+        font-size: 1.1rem;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        color: white;
+        max-width: 100%;
+        word-break: break-word;
+        line-height: 1.2;
+        text-shadow: 0 1px 2px rgba(0,0,0,0.2);
+    }
+
+    .category-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 15px;
+        margin-bottom: 20px;
+    }
+
+    /* Form validation */
+    .was-validated .form-control:invalid,
+    .form-control.is-invalid {
+        border-color: #dc3545;
+        background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12' width='12' height='12' fill='none' stroke='%23dc3545'%3e%3ccircle cx='6' cy='6' r='4.5'/%3e%3cpath stroke-linejoin='round' d='M5.8 3.6h.4L6 6.5z'/%3e%3ccircle cx='6' cy='8.2' r='.6' fill='%23dc3545' stroke='none'/%3e%3c/svg%3e");
+        background-repeat: no-repeat;
+        background-position: right calc(0.375em + 0.1875rem) center;
+        background-size: calc(0.75em + 0.375rem) calc(0.75em + 0.375rem);
+    }
+
+    /* Weight adjustment buttons */
+    .weight-adjust {
+        min-width: 42px;
+        padding: 0.375rem 0.25rem;
+        font-weight: 500;
+        transition: all 0.2s ease;
+    }
+
+    .weight-adjust:active {
+        transform: scale(0.95);
+    }
+
+    .weight-buttons {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-top: 10px;
+    }
+
+    #{{ form.weight.id_for_label }} {
+        border-radius: 4px;
+        font-size: 1.2rem;
+        height: 48px;
+        text-align: center;
+        font-weight: 500;
+        background-color: #f8f9fa;
+    }
+
+    .weight-actions {
+        display: flex;
+        gap: 10px;
+    }
+
+    .weight-actions button {
+        flex: 1;
+    }
+
+    @media (max-width: 768px) {
+        .weight-adjust {
+            min-width: 50px;
+            height: 40px;
+        }
+    }
+
+    .was-validated .form-control:valid,
+    .form-control.is-valid {
+        border-color: #198754;
+        background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 8 8'%3e%3cpath fill='%23198754' d='M2.3 6.73L.6 4.53c-.4-1.04.46-1.4 1.1-.8l1.1 1.4 3.4-3.8c.6-.63 1.6-.27 1.2.7l-4 4.6c-.43.5-.8.4-1.1.1z'/%3e%3c/svg%3e");
+        background-repeat: no-repeat;
+        background-position: right calc(0.375em + 0.1875rem) center;
+        background-size: calc(0.75em + 0.375rem) calc(0.75em + 0.375rem);
+    }
+
+    /* Step indicator styles */
+    .steps-indicator {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 30px;
+        position: relative;
+    }
+
+    .steps-indicator::after {
+        content: '';
+        position: absolute;
+        top: 20px;
+        left: 10%;
+        right: 10%;
+        height: 2px;
+        background-color: #e0e0e0;
+        z-index: 1;
+    }
+
+    .step {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        position: relative;
+        z-index: 2;
+    }
+
+    .step-circle {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background-color: #e0e0e0;
+        color: #6c757d;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+        margin-bottom: 8px;
+    }
+
+    .step.active .step-circle {
+        background-color: #3498db;
+        color: white;
+    }
+
+    .step.completed .step-circle {
+        background-color: #2ecc71;
+        color: white;
+    }
+
+    .step-label {
+        font-size: 0.9rem;
+        color: #6c757d;
+        text-align: center;
+    }
+
+    .step.active .step-label {
+        color: #3498db;
+        font-weight: 500;
+    }
+
+    .step.completed .step-label {
+        color: #2ecc71;
+    }
+
+    /* Hide/show steps */
+    .wizard-step {
+        display: none;
+    }
+
+    .wizard-step.active {
+        display: block;
+    }
+
+    /* Navigation buttons */
+    .wizard-buttons {
+        display: flex;
+        justify-content: space-between;
+        margin-top: 20px;
+    }
+
+    .btn-next, .btn-prev {
+        min-width: 120px;
+    }
+
+    /* Summary styles */
+    .summary-content {
+        background-color: #f8f9fa;
+        border-radius: 10px;
+        padding: 20px;
+        margin-bottom: 20px;
+    }
+
+    .summary-content .row {
+        margin-bottom: 15px;
+    }
+
+    .step-final-content .form-section-title {
+        margin-bottom: 25px;
+        color: #2ecc71;
+    }
+
+    @media (min-width: 768px) {
+        .category-grid {
+            grid-template-columns: repeat(4, 1fr);
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- Step Indicator -->
+    <div class="steps-indicator mb-4">
+        <div class="step step-1 active">
+            <div class="step-circle">1</div>
+            <div class="step-label">Rodzaj odzieży</div>
+        </div>
+        <div class="step step-2">
+            <div class="step-circle">2</div>
+            <div class="step-label">Pracownik</div>
+        </div>
+        <div class="step step-3">
+            <div class="step-circle">3</div>
+            <div class="step-label">Waga</div>
+        </div>
+        <div class="step step-4">
+            <div class="step-circle"><i class="fas fa-check"></i></div>
+            <div class="step-label">Podsumowanie</div>
+        </div>
+    </div>
+
+    <form method="post" id="bagWizardForm">
+        {% csrf_token %}
+        <input type="hidden" name="{{ form.print_label.name }}" id="{{ form.print_label.id_for_label }}" {% if form.print_label.value %}checked{% endif %}>
+
+        <!-- Step 1: Clothing Category Section -->
+        <div class="wizard-step step-1-content active">
+            <div class="form-section">
+                <h2 class="form-section-title">
+                    <i class="fas fa-tshirt me-2"></i> Wybierz rodzaj odzieży
+                </h2>
+                <div class="category-grid">
+                    {% for category in clothing_categories %}
+                    <div class="category-card" style="background-color: {{ category.color }};" onclick="document.getElementById('id_clothing_type_{{ category.id }}').click();">
+                        <input type="radio" name="{{ form.clothing_type.name }}"
+                               value="{{ category.id }}"
+                               id="id_clothing_type_{{ category.id }}"
+                               class="category-radio"
+                               {% if form.clothing_type.value == category.id %}checked{% endif %}>
+                        <div class="card-body" style="padding: 15px; width: 100%; height: 100%;">
+                            <i class="fas {{ category.icon }}"></i>
+                            <div class="category-name">{{ category.name }}</div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% if form.clothing_type.errors %}
+                <div class="alert alert-danger mt-3">
+                    {{ form.clothing_type.errors }}
+                </div>
+                {% endif %}
+
+                <div class="wizard-buttons">
+                    <div></div> <!-- Empty div for spacing -->
+                    <button type="button" class="btn btn-primary btn-next btn-tablet" id="step1Next" disabled>
+                        Dalej <i class="fas fa-arrow-right ms-1"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Step 2: Employee Assignment Section -->
+        <div class="wizard-step step-2-content">
+            <div class="form-section">
+                <h2 class="form-section-title">
+                    <i class="fas fa-users me-2"></i> Przypisanie do sortowania
+                </h2>
+                <div class="employee-select-container">
+                    <h3 class="form-section-title mb-3">
+                        <i class="fas fa-user-check me-2"></i> Wybierz pracownika
+                    </h3>
+                    <div class="employee-grid">
+                        {% for value, label in form.fields.assigned_to.choices %}
+                            {% if value %}
+                                {% with employee_id=value|stringformat:"s" %}
+                                <div class="employee-card" style="background-color: {% cycle '#4e5df3' '#e74c3c' '#3498db' '#9b59b6' '#2ecc71' '#f39c12' '#1abc9c' '#e67e22' '#34495e' '#16a085' '#8e44ad' '#d35400' %};" onclick="document.getElementById('employee_{{ value }}').click();">
+                                    <input type="radio"
+                                           name="{{ form.assigned_to.name }}"
+                                           id="employee_{{ value }}"
+                                           value="{{ value }}"
+                                           {% if form.assigned_to.value|stringformat:"s" == employee_id %}checked{% endif %}>
+                                    <div style="padding: 15px; width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center;">
+                                        <div class="employee-initials">
+                                           {{ label|striptags|first|upper }}
+                                        </div>
+                                        <div class="employee-name">{{ label|striptags }}</div>
+                                    </div>
+                                </div>
+                                {% endwith %}
+                            {% endif %}
+                        {% endfor %}
+                    </div>
+
+                    <!-- Hidden original select for form submission -->
+                    <select name="{{ form.assigned_to.name }}" id="{{ form.assigned_to.id_for_label }}" class="d-none">
+                        <option value="" selected>Pracownik, który będzie sortował worek</option>
+                        {% for value, label in form.fields.assigned_to.choices %}
+                            {% if value %}
+                                <option value="{{ value }}" {% if form.assigned_to.value|stringformat:"s" == value|stringformat:"s" %}selected{% endif %}>
+                                    {{ label|striptags }}
+                                </option>
+                            {% endif %}
+                        {% endfor %}
+                    </select>
+
+                    {% if form.assigned_to.errors %}
+                    <div class="alert alert-danger mt-2">
+                        {{ form.assigned_to.errors }}
+                    </div>
+                    {% endif %}
+                </div>
+
+                <div class="wizard-buttons">
+                    <button type="button" class="btn btn-outline-secondary btn-prev btn-tablet">
+                        <i class="fas fa-arrow-left me-1"></i> Wstecz
+                    </button>
+                    <button type="button" class="btn btn-primary btn-next btn-tablet" id="step2Next" disabled>
+                        Dalej <i class="fas fa-arrow-right ms-1"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Step 3: Weight Section -->
+        <div class="wizard-step step-3-content">
+            <div class="form-section">
+                <h2 class="form-section-title">
+                    <i class="fas fa-weight me-2"></i> Waga worka
+                </h2>
+                <div class="mb-4">
+                    <label for="{{ form.weight.id_for_label }}" class="form-label">{{ form.weight.label }}</label>
+                    <div class="mb-2">
+                        {{ form.weight }}
+                    </div>
+                    <div class="alert alert-info mt-2 mb-2">
+                        <i class="fas fa-info-circle me-2"></i> Wprowadź całkowitą wagę w kilogramach
+                    </div>
+                    <div class="weight-actions mt-2 mb-1">
+                        <button type="button" class="btn btn-sm btn-outline-secondary" id="clearWeightBtn">Wyczyść</button>
+                        <button type="button" class="btn btn-sm btn-outline-secondary" id="resetWeightBtn">Resetuj</button>
+                    </div>
+                    <div class="form-text mb-2">Użyj przycisków poniżej, aby szybko zmienić wagę:</div>
+                    <div class="weight-buttons">
+                        <button type="button" class="btn btn-outline-danger weight-adjust" data-amount="-5">-5</button>
+                        <button type="button" class="btn btn-outline-danger weight-adjust" data-amount="-1">-1</button>
+                        <button type="button" class="btn btn-outline-success weight-adjust" data-amount="1">+1</button>
+                        <button type="button" class="btn btn-outline-success weight-adjust" data-amount="5">+5</button>
+                        <button type="button" class="btn btn-outline-success weight-adjust" data-amount="10">+10</button>
+                        <button type="button" class="btn btn-outline-success weight-adjust" data-amount="20">+20</button>
+                    </div>
+                    <div class="form-text mt-2">{{ form.weight.help_text }}</div>
+                    {% if form.weight.errors %}
+                    <div class="alert alert-danger mt-2">
+                        {{ form.weight.errors }}
+                    </div>
+                    {% endif %}
+                </div>
+
+                <div class="wizard-buttons">
+                    <button type="button" class="btn btn-outline-secondary btn-prev btn-tablet">
+                        <i class="fas fa-arrow-left me-1"></i> Wstecz
+                    </button>
+                    <button type="button" class="btn btn-primary btn-tablet" id="step3Next" disabled>
+                        Dalej <i class="fas fa-arrow-right ms-1"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Final Submit Section (hidden, only shown at the end) -->
+        <div class="wizard-step step-4-content">
+            <div class="form-section">
+                <h2 class="form-section-title text-center">
+                    <i class="fas fa-check-circle me-2"></i> Podsumowanie
+                </h2>
+
+                <div class="summary-content p-3">
+                    <div class="row mb-3">
+                        <div class="col-5 text-end fw-bold">Rodzaj odzieży:</div>
+                        <div class="col-7" id="summary-category"></div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-5 text-end fw-bold">Przypisany pracownik:</div>
+                        <div class="col-7" id="summary-employee"></div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-5 text-end fw-bold">Waga worka:</div>
+                        <div class="col-7" id="summary-weight"></div>
+                    </div>
+                </div>
+
+                <div class="wizard-buttons">
+                    <button type="button" class="btn btn-outline-secondary btn-prev btn-tablet">
+                        <i class="fas fa-arrow-left me-1"></i> Wstecz
+                    </button>
+                    <div class="d-flex">
+                        <button type="submit" class="btn btn-primary btn-tablet me-2" name="just_save">
+                            <i class="fas fa-save me-2"></i> Zapisz worek
+                        </button>
+                        <button type="submit" class="btn btn-success btn-tablet" name="save_and_print">
+                            <i class="fas fa-print me-2"></i> Zapisz i drukuj
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Form elements
+        const printLabelCheckbox = document.getElementById('{{ form.print_label.id_for_label }}');
+        const saveAndPrintBtn = document.querySelector('button[name="save_and_print"]');
+        const justSaveBtn = document.querySelector('button[name="just_save"]');
+        const categoryCards = document.querySelectorAll('.category-card');
+        const employeeSelect = document.getElementById('{{ form.assigned_to.id_for_label }}');
+        const weightInput = document.getElementById('{{ form.weight.id_for_label }}');
+
+        // Step navigation buttons
+        const step1Next = document.getElementById('step1Next');
+        const step2Next = document.getElementById('step2Next');
+        const step3Next = document.getElementById('step3Next');
+        const prevButtons = document.querySelectorAll('.btn-prev');
+
+        // Steps indicators
+        const stepIndicators = document.querySelectorAll('.steps-indicator .step');
+
+        // Steps content
+        const wizardSteps = document.querySelectorAll('.wizard-step');
+
+        // Summary elements
+        const summaryCategory = document.getElementById('summary-category');
+        const summaryEmployee = document.getElementById('summary-employee');
+        const summaryWeight = document.getElementById('summary-weight');
+
+        // Current step tracking
+        let currentStep = 1;
+
+        // Initialize step indicator
+        updateStepIndicator(1);
+
+        // Clear and reset weight buttons
+        document.getElementById('resetWeightBtn').addEventListener('click', function() {
+            weightInput.value = "0";
+            validateWeightInput();
+            weightInput.focus();
+            weightInput.select();
+        });
+
+        // Initialize employee initials
+        document.querySelectorAll('.employee-initials').forEach(initialDiv => {
+            const fullName = initialDiv.nextElementSibling.textContent.trim();
+            const nameParts = fullName.split(' ');
+            let initials = nameParts[0][0]; // First letter of first name
+
+            // Add first letter of last name if it exists
+            if (nameParts.length > 1) {
+                initials += nameParts[nameParts.length - 1][0];
+            }
+
+            initialDiv.textContent = initials.toUpperCase();
+        });
+
+        // If the save and print button is clicked, ensure the print checkbox is checked
+        saveAndPrintBtn.addEventListener('click', function(e) {
+            printLabelCheckbox.checked = true;
+        });
+
+        // If the just save button is clicked, ensure the print checkbox is unchecked
+        justSaveBtn.addEventListener('click', function(e) {
+            printLabelCheckbox.checked = false;
+        });
+
+        // Function to update the step indicator
+        function updateStepIndicator(step) {
+            // Remove active and completed classes from all steps
+            document.querySelectorAll('.steps-indicator .step').forEach((el, index) => {
+                el.classList.remove('active', 'completed');
+
+                // Add completed class to steps before current step
+                if (index + 1 < step) {
+                    el.classList.add('completed');
+                }
+
+                // Add active class to current step
+                if (index + 1 === step) {
+                    el.classList.add('active');
+                }
+            });
+
+            // Update the step-indicator in the DOM if it exists (legacy support)
+            if (stepIndicators.length > 0) {
+                stepIndicators.forEach((indicator, index) => {
+                    if (index + 1 < step) {
+                        indicator.classList.add('completed');
+                        indicator.classList.remove('active');
+                    } else if (index + 1 === step) {
+                        indicator.classList.add('active');
+                        indicator.classList.remove('completed');
+                    } else {
+                        indicator.classList.remove('active', 'completed');
+                    }
+                });
+            }
+        }
+
+        // Handle category card selection
+        categoryCards.forEach(card => {
+            const radio = card.querySelector('input[type="radio"]');
+
+            // Set initial selected state
+            if (radio.checked) {
+                card.classList.add('selected');
+                step1Next.disabled = false;
+            }
+
+            card.addEventListener('click', function(e) {
+                // Remove selected class from all cards
+                categoryCards.forEach(c => c.classList.remove('selected'));
+
+                // Add selected class to clicked card
+                card.classList.add('selected');
+
+                // Check the radio button
+                radio.checked = true;
+                // Dispatch change event to ensure browser registers the change
+                radio.dispatchEvent(new Event('change', { bubbles: true }));
+
+                // Enable the next button
+                step1Next.disabled = false;
+
+                // Add some visual feedback
+                card.style.transform = 'scale(1.05)';
+                setTimeout(() => {
+                    card.style.transform = '';
+                }, 200);
+
+                e.stopPropagation();
+            });
+
+            // Add touch event listener for mobile
+            card.addEventListener('touchend', function(e) {
+                const radioEl = card.querySelector('input[type="radio"]');
+                if (radioEl) {
+                    radioEl.click();
+                }
+                e.preventDefault();
+            });
+        });
+
+        // No need to handle change directly as we're using the cards instead
+
+        // Handle weight input
+        weightInput.addEventListener('input', function() {
+            validateWeightInput();
+        });
+
+        // Handle weight adjustment buttons
+        document.querySelectorAll('.weight-adjust').forEach(button => {
+            button.addEventListener('click', function() {
+                const amount = parseInt(this.dataset.amount);
+                const currentValue = parseInt(weightInput.value) || 0;
+
+                // Calculate new value as integer
+                const newValue = Math.max(0, currentValue + amount);
+
+                // Update the input value as integer
+                // Update value as integer
+                weightInput.value = newValue > 0 ? newValue : "0";
+
+                // Provide visual feedback for the change
+                weightInput.style.backgroundColor = "#e8f4fc";
+                setTimeout(() => {
+                    weightInput.style.backgroundColor = "#f8f9fa";
+                }, 200);
+
+                // Select all text after changing the value
+                weightInput.select();
+
+                // Add visual feedback
+                this.classList.add('active');
+                setTimeout(() => {
+                    this.classList.remove('active');
+                }, 150);
+
+                // Trigger validation
+                validateWeightInput();
+
+                // Focus back on the weight input
+                weightInput.focus();
+            });
+        });
+
+        // Function to validate weight input
+        function validateWeightInput() {
+            // Ensure value is a clean integer
+            const value = parseInt(weightInput.value);
+            const isValid = weightInput.value && !isNaN(value) && value > 0 && /^\d+$/.test(weightInput.value.trim());
+
+            step3Next.disabled = !isValid;
+
+            if (isValid) {
+                weightInput.classList.remove('is-invalid');
+                weightInput.classList.add('is-valid');
+
+                // Format value as integer
+                const formattedValue = parseInt(weightInput.value);
+
+                // Only update if the value is different to avoid cursor position reset
+                if (formattedValue !== parseInt(weightInput.value)) {
+                    // Save cursor position
+                    const cursorPosition = weightInput.selectionStart;
+                    const hadFocus = weightInput.matches(':focus');
+
+                    // Update value
+                    weightInput.value = formattedValue;
+
+                    // Restore cursor position if focused
+                    if (hadFocus) {
+                        weightInput.setSelectionRange(cursorPosition, cursorPosition);
+                    } else {
+                        weightInput.select();
+                    }
+                }
+            } else {
+                weightInput.classList.remove('is-valid');
+                if (weightInput.value) {
+                    weightInput.classList.add('is-invalid');
+                    // Show error message for invalid input
+                    showError("Wprowadź prawidłową wagę w kilogramach (liczba całkowita większa od zera)");
+                }
+            }
+        }
+
+        // Navigate to next step
+        step1Next.addEventListener('click', function() {
+            // Validate step 1 - category selection
+            const selectedCategory = document.querySelector('input[name="{{ form.clothing_type.name }}"]:checked');
+            if (selectedCategory) {
+                goToStep(2);
+            } else {
+                showError("Proszę wybrać rodzaj odzieży!");
+            }
+        });
+
+        // Handle employee card selection
+        const employeeCards = document.querySelectorAll('.employee-card');
+        employeeCards.forEach(card => {
+            const radio = card.querySelector('input[type="radio"]');
+
+            // Set initial selected state
+            if (radio.checked) {
+                card.classList.add('selected');
+                step2Next.disabled = false;
+            }
+
+            card.addEventListener('click', function(e) {
+                // Remove selected class from all cards
+                employeeCards.forEach(c => c.classList.remove('selected'));
+
+                // Add selected class to clicked card
+                card.classList.add('selected');
+
+                // Check the radio button
+                radio.checked = true;
+                // Dispatch change event to ensure browser registers the change
+                radio.dispatchEvent(new Event('change', { bubbles: true }));
+
+                // Update the hidden select
+                employeeSelect.value = radio.value;
+
+                // Enable next button
+                step2Next.disabled = false;
+
+                // Add some visual feedback
+                card.style.transform = 'scale(1.05)';
+                setTimeout(() => {
+                    card.style.transform = '';
+                }, 200);
+
+                e.stopPropagation();
+            });
+
+            // Add touch event listener for mobile
+            card.addEventListener('touchend', function(e) {
+                const radioEl = card.querySelector('input[type="radio"]');
+                if (radioEl) {
+                    radioEl.click();
+                }
+                e.preventDefault();
+            });
+        });
+
+        // Step 2 next button click handler
+        step2Next.addEventListener('click', function() {
+            // Validate step 2 - employee selection
+            const selectedEmployee = document.querySelector('input[name="{{ form.assigned_to.name }}"]:checked');
+            if (selectedEmployee) {
+                goToStep(3);
+                // Auto-focus the weight input when reaching step 3
+                setTimeout(() => {
+                    weightInput.focus();
+                    weightInput.select();
+                }, 100);
+            } else {
+                showError("Proszę wybrać pracownika!");
+            }
+        });
+
+        // Navigate to previous step
+        // Previous button click handler
+        prevButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                goToStep(currentStep - 1);
+            });
+        });
+
+        // Step 3 next button click handler
+        step3Next.addEventListener('click', function() {
+            // Validate step 3 - weight input
+            const weightValue = parseFloat(weightInput.value);
+            if (weightInput.value && weightValue > 0) {
+                updateSummary();
+                goToStep(4);
+            } else {
+                weightInput.classList.add('is-invalid');
+                showError("Proszę podać poprawną wagę (większą od zera)!");
+            }
+        });
+
+        // Step navigation function
+        // Function to go to a specific step
+        function goToStep(step) {
+            // Hide all steps
+            wizardSteps.forEach(stepContent => {
+                stepContent.classList.remove('active');
+            });
+
+            // Show the target step
+            const targetStep = document.querySelector(`.step-${step}-content`);
+            if (targetStep) {
+                targetStep.classList.add('active');
+
+                // Auto-focus the weight input when going to step 3
+                if (step === 3 && weightInput) {
+                    setTimeout(() => {
+                        // Set initial value to 0 if empty
+                        if (!weightInput.value) {
+                            weightInput.value = "0";
+                        } else if (parseInt(weightInput.value) > 0) {
+                            // Format existing value as integer
+                            weightInput.value = parseInt(weightInput.value);
+                        }
+
+                        // Focus and select all text for easy replacement
+                        weightInput.focus();
+                        weightInput.select();
+
+                        // Handle keyboard event listener to handle number keys for faster input
+                        const handleKeydown = function(e) {
+                            // If a number key is pressed, clear the field first
+                            if ((e.key >= '0' && e.key <= '9') && !e.ctrlKey && !e.altKey && !e.metaKey) {
+                                if (weightInput.selectionStart === 0 && weightInput.selectionEnd === weightInput.value.length) {
+                                    // Already selected all, don't need to clear
+                                } else {
+                                    weightInput.value = '';
+                                }
+                            } else if (e.key === '.' || e.key === ',') {
+                                // Prevent decimal point or comma for integer input
+                                e.preventDefault();
+                            }
+                        };
+
+                        // Use this listener persistently
+                        weightInput.addEventListener('keydown', handleKeydown);
+
+                        // Handle focus to automatically select all text
+                        weightInput.addEventListener('focus', () => {
+                            weightInput.select();
+                        });
+                    }, 100);
+                }
+            }
+
+            // Update step indicators using the new function
+            updateStepIndicator(step);
+
+            // Update current step
+            currentStep = step;
+        }
+
+        // Update summary before submission
+        function updateSummary() {
+            // Get selected category
+            const selectedCategoryRadio = document.querySelector('input[name="{{ form.clothing_type.name }}"]:checked');
+            if (selectedCategoryRadio) {
+                const categoryCard = selectedCategoryRadio.closest('.category-card');
+                const categoryName = categoryCard.querySelector('.category-name').textContent;
+                const categoryColor = categoryCard.style.backgroundColor;
+                const categoryIcon = categoryCard.querySelector('i').className;
+
+                summaryCategory.innerHTML = `
+                    <span class="badge" style="background-color: ${categoryColor}; font-size: 1rem; padding: 8px 12px;">
+                        <i class="${categoryIcon} me-2"></i> ${categoryName}
+                    </span>
+                `;
+            }
+
+            // Get selected employee
+            const selectedEmployeeRadio = document.querySelector('input[name="{{ form.assigned_to.name }}"]:checked');
+            if (selectedEmployeeRadio) {
+                const employeeCard = selectedEmployeeRadio.closest('.employee-card');
+                const employeeName = employeeCard.querySelector('.employee-name').textContent;
+                const initialsDiv = employeeCard.querySelector('.employee-initials');
+                const bgColor = employeeCard.style.backgroundColor;
+                const initials = initialsDiv.textContent.trim();
+
+                summaryEmployee.innerHTML = `
+                    <span class="badge" style="background-color: ${bgColor}; font-size: 1rem; padding: 8px 12px;">
+                        <span style="display: inline-flex; align-items: center;">
+                            <div style="width: 30px; height: 30px; border-radius: 50%; background-color: rgba(255, 255, 255, 0.2); color: white;
+                                display: flex; align-items: center; justify-content: center; margin-right: 10px; font-size: 1rem; border: 1px solid rgba(255, 255, 255, 0.5);">
+                                ${initials}
+                            </div>
+                            <span>${employeeName}</span>
+                        </span>
+                    </span>
+                `;
+            }
+
+            // Get weight
+            const weight = weightInput.value;
+            if (weight) {
+                summaryWeight.innerHTML = `
+                    <span class="badge bg-secondary" style="font-size: 1rem; padding: 8px 12px;">
+                        <i class="fas fa-weight me-2"></i> ${weight} kg
+                    </span>
+                `;
+            }
+        }
+
+        // Show error message
+        function showError(message) {
+            // Create error alert
+            const errorAlert = document.createElement('div');
+            errorAlert.className = 'alert alert-danger alert-dismissible fade show mt-3';
+            errorAlert.role = 'alert';
+            errorAlert.innerHTML = `
+                <i class="fas fa-exclamation-circle me-2"></i>${message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            `;
+
+            // Find active step
+            const activeStep = document.querySelector('.wizard-step.active');
+            const formSection = activeStep.querySelector('.form-section');
+
+            // Remove any existing alerts
+            const existingAlerts = formSection.querySelectorAll('.alert-danger');
+            existingAlerts.forEach(alert => alert.remove());
+
+            // Add new alert
+            formSection.appendChild(errorAlert);
+
+            // Auto dismiss after 3 seconds
+            setTimeout(() => {
+                errorAlert.classList.remove('show');
+                setTimeout(() => errorAlert.remove(), 300);
+            }, 3000);
+        }
+
+        // Check if there are existing errors (from server-side validation)
+        const formErrors = document.querySelectorAll('.alert-danger');
+        if (formErrors.length > 0) {
+            // Find which step has errors
+            const step1Errors = document.querySelector('.step-1-content .alert-danger');
+            const step2Errors = document.querySelector('.step-2-content .alert-danger');
+            const step3Errors = document.querySelector('.step-3-content .alert-danger');
+
+            if (step1Errors) {
+                goToStep(1);
+            } else if (step2Errors) {
+                goToStep(2);
+            } else if (step3Errors) {
+                goToStep(3);
+            }
+        }
+    });
+</script>
+{% endblock %}

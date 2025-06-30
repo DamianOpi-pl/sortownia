@@ -1,0 +1,133 @@
+/* Custom styles for Clothing Sorting System */
+
+/* Animation for stats cards */
+.stats-card {
+    transition: all 0.3s ease;
+}
+
+.stats-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
+}
+
+.stats-value {
+    transition: all 0.3s ease;
+}
+
+.stats-card:hover .stats-value {
+    color: #2980b9;
+    transform: scale(1.05);
+}
+
+/* Improved table styles */
+.table {
+    border-collapse: separate;
+    border-spacing: 0;
+}
+
+.table th {
+    background-color: #f8f9fa;
+    border-bottom: 2px solid #dee2e6;
+    font-weight: 600;
+}
+
+.table td, .table th {
+    padding: 12px;
+    vertical-align: middle;
+}
+
+.table-hover tbody tr:hover {
+    background-color: rgba(52, 152, 219, 0.05);
+}
+
+/* Badge styling */
+.badge {
+    padding: 8px 12px;
+    font-weight: 500;
+}
+
+/* Button effects */
+.btn {
+    transition: all 0.2s ease;
+}
+
+.btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.btn:active {
+    transform: translateY(0);
+}
+
+/* Form control focus effect */
+.form-control:focus {
+    border-color: #3498db;
+    box-shadow: 0 0 0 0.2rem rgba(52, 152, 219, 0.25);
+}
+
+/* Custom alert styling */
+.alert {
+    border-left: 4px solid;
+}
+
+.alert-success {
+    border-left-color: #2ecc71;
+}
+
+.alert-danger {
+    border-left-color: #e74c3c;
+}
+
+.alert-info {
+    border-left-color: #3498db;
+}
+
+.alert-warning {
+    border-left-color: #f39c12;
+}
+
+/* Progress bar animation */
+.progress-bar {
+    transition: width 1s ease-in-out;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .page-header {
+        padding: 1rem 0;
+    }
+    
+    .page-header h1 {
+        font-size: 1.8rem;
+    }
+    
+    .table th, .table td {
+        padding: 8px;
+    }
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+    .card {
+        background-color: #343a40;
+        color: #f8f9fa;
+    }
+    
+    .card-header {
+        background-color: #2c3e50;
+    }
+    
+    .table th {
+        background-color: #343a40;
+        color: #f8f9fa;
+    }
+    
+    .stats-value {
+        color: #3498db;
+    }
+    
+    .text-muted {
+        color: #adb5bd !important;
+    }
+}

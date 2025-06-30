@@ -1,0 +1,90 @@
+{% extends 'sortapp/base.html' %}
+
+{% block title %}Zarządzanie pracownikami - Sortownia{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="page-header">
+        <h1><i class="fas fa-users"></i> Zarządzanie pracownikami</h1>
+        <a href="{% url 'settings' %}" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-left"></i> Powrót do ustawień
+        </a>
+    </div>
+
+    {% if messages %}
+        <div class="messages mt-3">
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    <!-- Employees List -->
+    <div class="card mt-4">
+        <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+            <h5 class="mb-0"><i class="fas fa-users"></i> Pracownicy</h5>
+            <a href="{% url 'add_employee' %}" class="btn btn-light btn-sm">
+                <i class="fas fa-plus"></i> Dodaj nowego pracownika
+            </a>
+        </div>
+        <div class="card-body">
+            {% if employees %}
+                <div class="row">
+                    {% for employee in employees %}
+                        <div class="col-md-4 col-lg-3 mb-4">
+                            <div class="card h-100">
+                                <div class="card-body text-center">
+                                    {% with initials=employee.name|cut:" "|make_list|slice:":2"|join:"" %}
+                                        <div style="width: 70px; height: 70px; margin: 0 auto; background-color: {{ employee.icon_color }}; color: white; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 2rem;">
+                                            {{ initials|upper }}
+                                        </div>
+                                    {% endwith %}
+                                    <h5 class="card-title mt-3">{{ employee.name }}</h5>
+                                    <div class="text-muted small">
+                                        <span class="color-sample" style="display:inline-block; width:15px; height:15px; background-color:{{ employee.icon_color }}; border-radius:3px;"></span>
+                                        {{ employee.icon_color }}
+                                    </div>
+                                </div>
+                                <div class="card-footer bg-white">
+                                    <div class="d-flex justify-content-between">
+                                        <a href="{% url 'edit_employee' employee.id %}" class="btn btn-sm btn-primary">
+                                            <i class="fas fa-edit"></i> Edytuj
+                                        </a>
+                                        <a href="{% url 'delete_employee' employee.id %}" class="btn btn-sm btn-danger">
+                                            <i class="fas fa-trash"></i> Usuń
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <p class="text-muted">Brak pracowników. Dodaj pierwszego pracownika.</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="card mt-4">
+        <div class="card-header bg-info text-white">
+            <h5 class="mb-0"><i class="fas fa-info-circle"></i> Informacje</h5>
+        </div>
+        <div class="card-body">
+            <p>
+                Pracownicy dodani w tej sekcji będą dostępni w systemie przy:
+            </p>
+            <ul>
+                <li>Rejestracji nowych worków (przydzielanie do sortowania)</li>
+                <li>Rejestracji posortowanych worków (kto przygotował worek)</li>
+                <li>Statystykach wydajności pracowników</li>
+            </ul>
+            <p>
+                Każdy pracownik ma przypisany kolor ikony, który jest używany do reprezentacji pracownika w interfejsie aplikacji.
+            </p>
+        </div>
+    </div>
+</div>
+{% endblock %}

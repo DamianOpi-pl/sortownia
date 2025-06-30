@@ -1,0 +1,133 @@
+{% extends 'sortapp/base.html' %}
+
+{% block title %}Edycja oczekującego worka - Sortownia Odzieży{% endblock %}
+
+{% block header %}Edycja worka #{{ bag.bag_number }}{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-lg-8 col-md-10 mx-auto">
+        <div class="card">
+            <div class="card-header">
+                <i class="fas fa-edit me-2"></i> Edycja worka oczekującego na sortowanie
+            </div>
+            <div class="card-body">
+                <form method="post" id="editBagForm">
+                    {% csrf_token %}
+
+                    <!-- Weight Field -->
+                    <div class="mb-4">
+                        <label for="id_weight" class="form-label">{{ form.weight.label }}</label>
+                        {{ form.weight }}
+                        <div class="form-text">{{ form.weight.help_text }}</div>
+                        {% if form.weight.errors %}
+                            <div class="alert alert-danger mt-2">
+                                {{ form.weight.errors }}
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Clothing Type Field -->
+                    <div class="mb-4">
+                        <label class="form-label d-block">{{ form.clothing_type.label }}</label>
+                        <div class="row">
+                            {% for clothing_type in clothing_categories %}
+                                <div class="col-md-6 mb-3">
+                                    <div class="form-check">
+                                        <input class="form-check-input visually-hidden clothing-type-radio"
+                                               type="radio"
+                                               name="clothing_type"
+                                               id="clothing_type_{{ clothing_type.id }}"
+                                               value="{{ clothing_type.id }}"
+                                               {% if form.clothing_type.value|stringformat:"i" == clothing_type.id|stringformat:"i" %}checked{% endif %}>
+                                        <label class="form-check-label category-card w-100" for="clothing_type_{{ clothing_type.id }}">
+                                            <div class="p-3" style="border-radius: 10px; background-color: {{ clothing_type.color }}; color: white;">
+                                                <div class="d-flex align-items-center">
+                                                    <div style="width: 40px; height: 40px; border-radius: 8px; background-color: rgba(255,255,255,0.2); display: flex; align-items: center; justify-content: center; margin-right: 10px;">
+                                                        <i class="fas {{ clothing_type.icon }} fa-lg"></i>
+                                                    </div>
+                                                    <div>
+                                                        <h6 class="mb-0">{{ clothing_type.name }}</h6>
+                                                        <small>{{ clothing_type.description|default:"" }}</small>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </label>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                        <div class="form-text">{{ form.clothing_type.help_text }}</div>
+                        {% if form.clothing_type.errors %}
+                            <div class="alert alert-danger mt-2">
+                                {{ form.clothing_type.errors }}
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Assigned To Field -->
+                    <div class="mb-4">
+                        <label for="id_assigned_to" class="form-label">{{ form.assigned_to.label }}</label>
+                        {{ form.assigned_to }}
+                        <div class="form-text">{{ form.assigned_to.help_text }}</div>
+                        {% if form.assigned_to.errors %}
+                            <div class="alert alert-danger mt-2">
+                                {{ form.assigned_to.errors }}
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-4">
+                        <a href="{% url 'pending_bags' %}" class="btn btn-secondary btn-lg me-md-2">
+                            <i class="fas fa-times me-2"></i> Anuluj
+                        </a>
+                        <button type="submit" class="btn btn-primary btn-lg">
+                            <i class="fas fa-save me-2"></i> Zapisz zmiany
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Style active category cards
+        const categoryCards = document.querySelectorAll('.category-card');
+
+        categoryCards.forEach(card => {
+            const radio = document.querySelector(`#${card.getAttribute('for')}`);
+
+            if (radio.checked) {
+                card.classList.add('active-category');
+                card.style.boxShadow = '0 0 0 3px white, 0 0 0 6px ' + card.querySelector('.p-3').style.backgroundColor;
+            }
+
+            card.addEventListener('click', function() {
+                // Remove active class from all cards
+                categoryCards.forEach(c => {
+                    c.classList.remove('active-category');
+                    c.style.boxShadow = '';
+                });
+
+                // Add active class to clicked card
+                this.classList.add('active-category');
+                this.style.boxShadow = '0 0 0 3px white, 0 0 0 6px ' + this.querySelector('.p-3').style.backgroundColor;
+            });
+        });
+
+        // Fix form submission on iOS
+        document.getElementById('editBagForm').addEventListener('submit', function(e) {
+            // Ensure all selected values are properly included
+            const selectedType = document.querySelector('input[name="clothing_type"]:checked');
+            if (!selectedType) {
+                e.preventDefault();
+                alert('Proszę wybrać rodzaj odzieży.');
+            }
+        });
+    });
+</script>
+{% endblock %}

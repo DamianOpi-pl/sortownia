@@ -1,0 +1,199 @@
+{% extends 'sortapp/base.html' %}
+{% load sorting_extras %}
+
+{% block title %}Posortowane torby (S-bags) - Sortownia Odzieży{% endblock %}
+
+{% block header %}Lista posortowanych toreb (S-bags){% endblock %}
+
+{% block extra_css %}
+<style>
+    .filter-section {
+        background-color: #f8f9fa;
+        border-radius: 10px;
+        padding: 20px;
+        margin-bottom: 20px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    }
+
+    .table th {
+        position: sticky;
+        top: 0;
+        background-color: white;
+        z-index: 10;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    }
+
+    .category-badge {
+        padding: 6px 10px;
+        border-radius: 20px;
+        color: white;
+        font-weight: 500;
+        display: inline-block;
+        min-width: 120px;
+        text-align: center;
+    }
+
+    .employee-badge {
+        display: inline-flex;
+        align-items: center;
+        padding: 5px 10px;
+        border-radius: 20px;
+        background-color: #f8f9fa;
+        font-weight: 500;
+    }
+
+    .employee-initials {
+        width: 30px;
+        height: 30px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+        color: white;
+        margin-right: 8px;
+    }
+
+    .action-buttons {
+        display: flex;
+        gap: 5px;
+    }
+
+    .action-buttons .btn {
+        padding: 5px 10px;
+        font-size: 0.9rem;
+    }
+
+    .table-responsive {
+        max-height: 70vh;
+        overflow-y: auto;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-12">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <div>
+                <a href="{% url 'register_sorted_bag' %}" class="btn btn-primary">
+                    <i class="fas fa-plus-circle me-2"></i> Dodaj nową torbę (S-bag)
+                </a>
+                <a href="{% url 'sorted_bag_stats' %}" class="btn btn-info text-white ms-2">
+                    <i class="fas fa-chart-bar me-2"></i> Statystyki S-bags
+                </a>
+            </div>
+            <div>
+                <span class="badge bg-primary rounded-pill fs-6">
+                    <i class="fas fa-boxes me-1"></i> Łącznie: {{ sorted_bags|length }} toreb
+                </span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-12">
+        <div class="filter-section">
+            <h5 class="mb-3"><i class="fas fa-filter me-2"></i> Filtry</h5>
+            <form method="get" action="{% url 'sorted_bags' %}" class="row g-3">
+                <div class="col-md-4">
+                    <label for="date" class="form-label">Data</label>
+                    <select name="date" id="date" class="form-select">
+                        <option value="">Wszystkie daty</option>
+                        {% for date in date_range %}
+                            <option value="{{ date }}" {% if date == selected_date %}selected{% endif %}>{{ date }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <label for="category" class="form-label">Kategoria</label>
+                    <select name="category" id="category" class="form-select">
+                        <option value="all">Wszystkie kategorie</option>
+                        {% for category in categories %}
+                            <option value="{{ category.id }}" {% if selected_category == category.id|stringformat:"s" %}selected{% endif %}>{{ category.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <label for="employee" class="form-label">Pracownik</label>
+                    <select name="employee" id="employee" class="form-select">
+                        <option value="all">Wszyscy pracownicy</option>
+                        {% for employee in employees %}
+                            <option value="{{ employee.id }}" {% if selected_employee == employee.id|stringformat:"s" %}selected{% endif %}>{{ employee.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-12 text-end">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-search me-2"></i> Filtruj
+                    </button>
+                    <a href="{% url 'sorted_bags' %}" class="btn btn-outline-secondary ms-2">
+                        <i class="fas fa-undo me-2"></i> Resetuj filtry
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-12">
+        {% if sorted_bags %}
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Numer torby</th>
+                            <th>Kategoria</th>
+                            <th>Waga</th>
+                            <th>Przygotowane przez</th>
+                            <th>Data utworzenia</th>
+                            <th>Akcje</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for bag in sorted_bags %}
+                            <tr>
+                                <td><strong>{{ bag.bag_number }}</strong></td>
+                                <td>
+                                    <span class="category-badge" style="background-color: {{ bag.clothing_category.color }}">
+                                        <i class="fas {{ bag.clothing_category.icon }} me-2"></i>
+                                        {{ bag.clothing_category.name }}
+                                    </span>
+                                </td>
+                                <td>{{ bag.weight|format_weight }}</td>
+                                <td>
+                                    {% if bag.prepared_by %}
+                                        <span class="employee-badge">
+                                            <span class="employee-initials" style="background-color: {{ bag.prepared_by.icon_color }}">
+                                                {{ bag.prepared_by.name|first|upper }}
+                                            </span>
+                                            {{ bag.prepared_by.name }}
+                                        </span>
+                                    {% else %}
+                                        <span class="text-muted">Nie przypisano</span>
+                                    {% endif %}
+                                </td>
+                                <td>{{ bag.created_at|date:"d.m.Y H:i" }}</td>
+                                <td>
+                                    <div class="action-buttons">
+                                        <a href="{% url 'update_sorted_bag' bag.id %}" class="btn btn-sm btn-outline-primary">
+                                            <i class="fas fa-edit"></i> Edytuj
+                                        </a>
+                                        <!-- Additional actions can be added here -->
+                                    </div>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <div class="alert alert-info">
+                <i class="fas fa-info-circle me-2"></i> Brak posortowanych toreb spełniających kryteria wyszukiwania.
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

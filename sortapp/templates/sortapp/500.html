@@ -1,0 +1,30 @@
+{% extends 'sortapp/base.html' %}
+{% load sorting_extras %}
+
+{% block title %}500 - Błąd serwera - System Sortowania Odzieży{% endblock %}
+
+{% block header %}Błąd 500 - Błąd serwera{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8 text-center">
+        <div class="card">
+            <div class="card-body py-5">
+                <div class="display-1 text-danger mb-4">
+                    <i class="fas fa-exclamation-circle"></i> 500
+                </div>
+                <h2 class="mb-4">Wystąpił błąd serwera</h2>
+                <p class="lead mb-4">
+                    Przepraszamy, ale podczas przetwarzania Twojego żądania wystąpił wewnętrzny błąd serwera.
+                </p>
+                <p class="mb-5">
+                    Nasi administratorzy zostali powiadomieni o problemie i pracują nad jego rozwiązaniem. Prosimy spróbować ponownie za kilka minut.
+                </p>
+                <a href="{% url 'home' %}" class="btn btn-primary btn-lg">
+                    <i class="fas fa-home me-2"></i> Powrót do strony głównej
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

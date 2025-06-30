@@ -1,0 +1,30 @@
+{% extends 'sortapp/base.html' %}
+{% load sorting_extras %}
+
+{% block title %}404 - Strona nie znaleziona - System Sortowania Odzieży{% endblock %}
+
+{% block header %}Błąd 404 - Strona nie znaleziona{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8 text-center">
+        <div class="card">
+            <div class="card-body py-5">
+                <div class="display-1 text-danger mb-4">
+                    <i class="fas fa-exclamation-triangle"></i> 404
+                </div>
+                <h2 class="mb-4">Strona nie znaleziona</h2>
+                <p class="lead mb-4">
+                    Przepraszamy, ale strona której szukasz nie istnieje lub została przeniesiona.
+                </p>
+                <p class="mb-5">
+                    Sprawdź poprawność adresu URL lub przejdź do strony głównej systemu.
+                </p>
+                <a href="{% url 'home' %}" class="btn btn-primary btn-lg">
+                    <i class="fas fa-home me-2"></i> Powrót do strony głównej
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

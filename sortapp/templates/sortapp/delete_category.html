@@ -1,0 +1,61 @@
+{% extends 'sortapp/base.html' %}
+
+{% block title %}Usuń kategorię - Sortownia{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="page-header">
+        <h1><i class="fas fa-trash"></i> Usuń kategorię</h1>
+        <a href="{% url 'category_settings' %}" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-left"></i> Powrót do kategorii
+        </a>
+    </div>
+
+    <div class="row mt-4">
+        <div class="col-md-6 mx-auto">
+            <div class="card">
+                <div class="card-header bg-danger text-white">
+                    <h5 class="mb-0"><i class="fas fa-exclamation-triangle"></i> Potwierdź usunięcie</h5>
+                </div>
+                <div class="card-body">
+                    <h5 class="card-title">Czy na pewno chcesz usunąć tę kategorię?</h5>
+                    
+                    <div class="alert alert-warning">
+                        <div class="d-flex align-items-center mb-3">
+                            {% if category.icon %}
+                                <i class="fas {{ category.icon }} me-3" style="font-size: 2rem; color: {{ category.color }}"></i>
+                            {% endif %}
+                            <div>
+                                <strong>{{ category.name }}</strong>
+                                {% if category.description %}
+                                    <div class="text-muted">{{ category.description }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <p class="mb-0">
+                            <span class="color-sample" style="display:inline-block; width:20px; height:20px; background-color:{{ category.color }}; border-radius:4px;"></span>
+                            Kolor: {{ category.color }}
+                        </p>
+                    </div>
+                    
+                    <p class="text-danger">
+                        <i class="fas fa-info-circle"></i> Ta operacja jest nieodwracalna. Kategoria zostanie trwale usunięta z systemu.
+                    </p>
+                    
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="d-flex justify-content-between">
+                            <a href="{% url 'category_settings' %}" class="btn btn-secondary">
+                                <i class="fas fa-times"></i> Anuluj
+                            </a>
+                            <button type="submit" class="btn btn-danger">
+                                <i class="fas fa-trash"></i> Usuń kategorię
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

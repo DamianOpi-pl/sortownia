@@ -1,0 +1,149 @@
+{% extends 'sortapp/base.html' %}
+
+{% block title %}Zarządzanie kategoriami - Sortownia{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="page-header">
+        <h1><i class="fas fa-tags"></i> Zarządzanie kategoriami</h1>
+        <a href="{% url 'settings' %}" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-left"></i> Powrót do ustawień
+        </a>
+    </div>
+
+    {% if messages %}
+        <div class="messages mt-3">
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    <!-- Incoming Clothing Categories -->
+    <div class="card mt-4">
+        <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+            <h5 class="mb-0"><i class="fas fa-tshirt"></i> Kategorie odzieży przychodzącej</h5>
+            <a href="{% url 'add_incoming_category' %}" class="btn btn-light btn-sm">
+                <i class="fas fa-plus"></i> Dodaj nową kategorię
+            </a>
+        </div>
+        <div class="card-body">
+            {% if incoming_categories %}
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Nazwa</th>
+                                <th>Ikona</th>
+                                <th>Kolor</th>
+                                <th>Status</th>
+                                <th>Akcje</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for category in incoming_categories %}
+                                <tr>
+                                    <td>{{ category.name }}</td>
+                                    <td>
+                                        {% if category.icon %}
+                                            <i class="fas {{ category.icon }}" style="color: {{ category.color }}"></i>
+                                        {% else %}
+                                            -
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <span class="color-sample" style="display:inline-block; width:20px; height:20px; background-color:{{ category.color }}; border-radius:4px;"></span>
+                                        {{ category.color }}
+                                    </td>
+                                    <td>
+                                        {% if category.active %}
+                                            <span class="badge bg-success">Aktywna</span>
+                                        {% else %}
+                                            <span class="badge bg-secondary">Nieaktywna</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <a href="{% url 'edit_incoming_category' category.id %}" class="btn btn-sm btn-primary">
+                                            <i class="fas fa-edit"></i> Edytuj
+                                        </a>
+                                        <a href="{% url 'delete_incoming_category' category.id %}" class="btn btn-sm btn-danger">
+                                            <i class="fas fa-trash"></i> Usuń
+                                        </a>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <p class="text-muted">Brak kategorii odzieży przychodzącej. Dodaj pierwszą kategorię.</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Sorted Clothing Categories -->
+    <div class="card mt-4">
+        <div class="card-header bg-success text-white d-flex justify-content-between align-items-center">
+            <h5 class="mb-0"><i class="fas fa-tags"></i> Kategorie posortowanej odzieży</h5>
+            <a href="{% url 'add_sorted_category' %}" class="btn btn-light btn-sm">
+                <i class="fas fa-plus"></i> Dodaj nową kategorię
+            </a>
+        </div>
+        <div class="card-body">
+            {% if sorted_categories %}
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Nazwa</th>
+                                <th>Ikona</th>
+                                <th>Kolor</th>
+                                <th>Status</th>
+                                <th>Akcje</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for category in sorted_categories %}
+                                <tr>
+                                    <td>{{ category.name }}</td>
+                                    <td>
+                                        {% if category.icon %}
+                                            <i class="fas {{ category.icon }}" style="color: {{ category.color }}"></i>
+                                        {% else %}
+                                            -
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <span class="color-sample" style="display:inline-block; width:20px; height:20px; background-color:{{ category.color }}; border-radius:4px;"></span>
+                                        {{ category.color }}
+                                    </td>
+                                    <td>
+                                        {% if category.active %}
+                                            <span class="badge bg-success">Aktywna</span>
+                                        {% else %}
+                                            <span class="badge bg-secondary">Nieaktywna</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <a href="{% url 'edit_sorted_category' category.id %}" class="btn btn-sm btn-primary">
+                                            <i class="fas fa-edit"></i> Edytuj
+                                        </a>
+                                        <a href="{% url 'delete_sorted_category' category.id %}" class="btn btn-sm btn-danger">
+                                            <i class="fas fa-trash"></i> Usuń
+                                        </a>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <p class="text-muted">Brak kategorii posortowanej odzieży. Dodaj pierwszą kategorię.</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

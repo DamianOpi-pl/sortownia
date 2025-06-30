@@ -7,243 +7,310 @@
 {% block header %}Worki oczekujące na sortowanie{% endblock %}
 
 {% block content %}
-<div class="row">
-    <div class="col-12">
-        <div class="card">
-            <div class="card-header d-flex justify-content-between align-items-center">
-                <span><i class="fas fa-clock me-2"></i> Worki oczekujące na sortowanie</span>
-                <a href="{% url 'register_bag' %}" class="btn btn-primary" style="padding: 10px 18px; font-size: 1rem; border-radius: 8px;">
-                    <i class="fas fa-plus-circle me-2"></i> Zarejestruj nowy worek
-                </a>
-            </div>
-            <div class="card-body">
-                {% if bags %}
-                    <div class="table-responsive">
-                        <table class="table table-hover">
-                            <thead>
-                                <tr>
-                                    <th>Numer worka / Kod EAN</th>
-                                    <th>Rodzaj odzieży</th>
-                                    <th>Waga (kg)</th>
-                                    <th>Zarejestrowane przez</th>
-                                    <th>Przydzielone do</th>
-                                    <th>Oczekuje od</th>
-                                    <th>Akcje</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for bag in bags %}
-                                <tr>
-                                    <td>
-                                        <button type="button" class="btn btn-sm btn-outline-secondary view-ean-btn"
-                                                data-ean="{{ bag.bag_number }}" data-bs-toggle="tooltip"
-                                                title="Pokaż kod kreskowy EAN">
-                                            <i class="fas fa-barcode me-1"></i> {{ bag.bag_number }}
-                                        </button>
-                                    </td>
-                                    <td>
-                                        {% if bag.clothing_type %}
-                                            <div style="display: inline-flex; align-items: center; background-color: {{ bag.clothing_type.color }}; color: white; padding: 8px 12px; border-radius: 8px;">
-                                                <i class="fas {{ bag.clothing_type.icon }} me-2"></i>
-                                                <span style="font-weight: 500;">{{ bag.clothing_type.name }}</span>
-                                            </div>
-                                        {% else %}
-                                            <div style="display: inline-flex; align-items: center; background-color: #6c757d; color: white; padding: 8px 12px; border-radius: 8px;">
-                                                <i class="fas fa-question-circle me-2"></i>
-                                                <span style="font-weight: 500;">Brak kategorii</span>
-                                            </div>
-                                        {% endif %}
-                                    </td>
-                                    <td>{{ bag.weight|format_weight }}</td>
+<div class="container-fluid px-0">
+    <!-- Header with Add Button -->
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h5 class="mb-0"><i class="fas fa-clock me-2"></i> Worki oczekujące</h5>
+        <a href="{% url 'register_bag' %}" class="btn btn-primary rounded-pill">
+            <i class="fas fa-plus me-2"></i> <span class="d-none d-md-inline">Dodaj</span> worek
+        </a>
+    </div>
 
-                                    <td>
-                                        {% if bag.assigned_to %}
-                                            <div style="display: flex; align-items: center;">
-                                                <div style="width: 35px; height: 35px; border-radius: 8px; background-color: #6c757d; display: flex; align-items: center; justify-content: center; margin-right: 8px; color: white;">
-                                                    <i class="fas fa-user"></i>
-                                                </div>
-                                                <span style="font-weight: 500;">{{ bag.assigned_to.name }}</span>
-                                            </div>
-                                        {% else %}
-                                            <div style="display: flex; align-items: center;">
-                                                <div style="width: 35px; height: 35px; border-radius: 8px; background-color: #6c757d; display: flex; align-items: center; justify-content: center; margin-right: 8px; color: white;">
-                                                    <i class="fas fa-user-slash"></i>
-                                                </div>
-                                                <span style="font-weight: 500; color: #6c757d;">Nie przydzielono</span>
-                                            </div>
-                                        {% endif %}
-                                    </td>
-                                    <td>
-                                        <span title="{{ bag.created_at|polish_date:'long' }}, {{ bag.created_at|date:'H:i' }}">
-                                            {{ bag.created_at|timesince }} temu
-                                        </span>
-                                    </td>
-                                    <td>
-                                        <div class="btn-group" role="group">
-                                            <a href="{% url 'mark_sorted' bag.id %}" class="btn btn-success" style="padding: 8px 16px; font-size: 0.95rem; border-radius: 8px;">
-                                                <i class="fas fa-check me-2"></i> Posortowane
-                                            </a>
-                                            <a href="{% url 'edit_pending_bag' bag.id %}" class="btn btn-primary" style="padding: 8px 16px; font-size: 0.95rem; border-radius: 8px; margin-left: 5px;">
-                                                <i class="fas fa-edit me-2"></i> Edytuj
-                                            </a>
-                                            <button type="button" class="btn btn-outline-primary print-ean-btn" style="padding: 8px 16px; font-size: 0.95rem; border-radius: 8px; margin-left: 5px;"
-                                                    data-ean="{{ bag.bag_number }}" data-bs-toggle="tooltip"
-                                                    title="Drukuj etykietę EAN">
-                                                <i class="fas fa-print"></i>
-                                            </button>
-                                        </div>
-                                    </td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
+    {% if bags %}
+        <div class="bag-list">
+            {% for bag in bags %}
+            <div class="bag-card" data-bag-id="{{ bag.id }}">
+                <!-- Main info -->
+                <div class="bag-card-body" onclick="window.location.href='{% url 'bag_detail' bag.id %}';">
+                    <!-- Bag number and weight -->
+                    <div class="d-flex justify-content-between align-items-start mb-2">
+                        <div class="bag-number">
+                            <i class="fas fa-barcode me-1"></i> {{ bag.bag_number }}
+                        </div>
+                        <div class="bag-weight">
+                            <i class="fas fa-weight-hanging me-1"></i> {{ bag.weight|format_weight }}
+                        </div>
                     </div>
-                {% else %}
-                    <div class="alert alert-info mb-0">
-                        <i class="fas fa-info-circle me-2"></i> Nie ma żadnych worków oczekujących na sortowanie. Sprawdź później.
+
+                    <!-- Clothing type -->
+                    <div class="mb-2">
+                        {% if bag.clothing_type %}
+                            <div class="clothing-type" style="background-color: {{ bag.clothing_type.color }};">
+                                <i class="fas {{ bag.clothing_type.icon }} me-1"></i>
+                                <span>{{ bag.clothing_type.name }}</span>
+                            </div>
+                        {% else %}
+                            <div class="clothing-type no-type">
+                                <i class="fas fa-question-circle me-1"></i>
+                                <span>Brak kategorii</span>
+                            </div>
+                        {% endif %}
                     </div>
-                    <div class="text-center mt-4">
-                        <a href="{% url 'register_bag' %}" class="btn btn-primary btn-lg" style="padding: 12px 24px; font-size: 1.1rem; border-radius: 10px;">
-                            <i class="fas fa-plus-circle me-2"></i> Zarejestruj nowy worek
-                        </a>
+
+                    <!-- Assignment and time -->
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div class="bag-assignment {% if bag.assigned_to %}has-assignment{% else %}no-assignment{% endif %}">
+                            {% if bag.assigned_to %}
+                                <i class="fas fa-user me-1"></i> {{ bag.assigned_to.name }}
+                            {% else %}
+                                <i class="fas fa-user-slash me-1"></i> Nie przydzielono
+                            {% endif %}
+                        </div>
+                        <div class="bag-time" title="{{ bag.created_at|polish_date:'long' }}, {{ bag.created_at|date:'H:i' }}">
+                            <i class="fas fa-history me-1"></i> {{ bag.created_at|timesince }} temu
+                        </div>
                     </div>
-                {% endif %}
+                </div>
+
+                <!-- Action buttons -->
+                <div class="bag-card-actions">
+                    <a href="{% url 'bag_detail' bag.id %}" class="btn btn-info btn-action">
+                        <i class="fas fa-info-circle"></i>
+                    </a>
+                    <a href="{% url 'mark_sorted' bag.id %}" class="btn btn-success btn-action">
+                        <i class="fas fa-check"></i>
+                    </a>
+                    <a href="{% url 'edit_pending_bag' bag.id %}" class="btn btn-primary btn-action">
+                        <i class="fas fa-edit"></i>
+                    </a>
+                    <button type="button" class="btn btn-secondary btn-action print-ean-btn" data-ean="{{ bag.bag_number }}">
+                        <i class="fas fa-print"></i>
+                    </button>
+                </div>
             </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="empty-state">
+            <div class="empty-state-icon">
+                <i class="fas fa-box-open"></i>
+            </div>
+            <h5>Brak oczekujących worków</h5>
+            <p class="text-muted mb-4">Wszystkie worki zostały posortowane lub nie zarejestrowano jeszcze żadnych.</p>
+            <a href="{% url 'register_bag' %}" class="btn btn-primary btn-lg rounded-pill">
+                <i class="fas fa-plus-circle me-2"></i> Zarejestruj nowy worek
+            </a>
+        </div>
+    {% endif %}
+
+    {% if bags %}
+    <div class="instruction-card mt-4">
+        <div class="instruction-header">
+            <i class="fas fa-info-circle me-2"></i> Instrukcje sortowania
+        </div>
+        <div class="instruction-body">
+            <p>Aby oznaczyć worek jako posortowany ({{ current_date_polish }}):</p>
+            <ol>
+                <li>Wybierz worek z powyższej listy</li>
+                <li>Naciśnij zielony przycisk <i class="fas fa-check"></i> lub przejdź do szczegółów worka</li>
+                <li>Wybierz pracownika, który wykonał sortowanie</li>
+                <li>Wyślij formularz, aby zarejestrować ukończenie</li>
+            </ol>
+            <p class="mb-0 text-muted">System automatycznie obliczy czas.</p>
         </div>
     </div>
+    {% endif %}
 </div>
-
-{% if bags %}
-<div class="row mt-4">
-    <div class="col-12">
-        <div class="card">
-            <div class="card-header">
-                <i class="fas fa-info-circle me-2"></i> Instrukcje sortowania
-            </div>
-            <div class="card-body">
-                <p>Aby oznaczyć worek jako posortowany ({{ current_date_polish }}):</p>
-                <ol>
-                    <li>Wybierz worek z powyższej listy</li>
-                    <li>Kliknij przycisk "Posortowane"</li>
-                    <li>Wybierz pracownika, który wykonał sortowanie</li>
-                    <li>Wyślij formularz, aby zarejestrować ukończenie</li>
-                </ol>
-                <p class="mb-0 text-muted">System automatycznie obliczy czas.</p>
-            </div>
-        </div>
-    </div>
-</div>
-{% endif %}
 {% endblock %}
 
 {% block extra_js %}
 <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
 <script>
     document.addEventListener('DOMContentLoaded', function() {
-        // Initialize tooltips
-        const tooltips = document.querySelectorAll('[data-bs-toggle="tooltip"]');
-        tooltips.forEach(tooltip => new bootstrap.Tooltip(tooltip));
-
-        // EAN barcode modal
-        const eanModal = `
-            <div class="modal fade" id="eanBarcodeModal" tabindex="-1" aria-hidden="true">
-                <div class="modal-dialog">
-                    <div class="modal-content">
-                        <div class="modal-header">
-                            <h5 class="modal-title">Kod kreskowy EAN</h5>
-                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                        </div>
-                        <div class="modal-body text-center">
-                            <div id="eanBarcodeDisplay"></div>
-                            <p class="mt-3 mb-0 fw-bold fs-3" id="eanCodeDisplay" style="letter-spacing: 1px;"></p>
-                        </div>
-                        <div class="modal-footer">
-                            <button type="button" class="btn btn-secondary btn-lg" data-bs-dismiss="modal" style="padding: 12px 24px; font-size: 1.1rem; border-radius: 8px;">Zamknij</button>
-                            <button type="button" class="btn btn-primary btn-lg" id="printModalBtn" style="padding: 12px 24px; font-size: 1.1rem; border-radius: 8px;">
-                                <i class="fas fa-print me-1"></i> Drukuj etykietę
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        `;
-
-        // Append modal to body
-        document.body.insertAdjacentHTML('beforeend', eanModal);
-        const barcodeModal = new bootstrap.Modal(document.getElementById('eanBarcodeModal'));
-
-        // View EAN buttons
-        const viewEanBtns = document.querySelectorAll('.view-ean-btn');
-        viewEanBtns.forEach(btn => {
-            btn.addEventListener('click', function() {
-                const ean = this.getAttribute('data-ean');
-                showEanBarcode(ean);
-            });
-        });
-
-        // Print EAN buttons
+        // Print EAN label functionality
         const printEanBtns = document.querySelectorAll('.print-ean-btn');
         printEanBtns.forEach(btn => {
-            btn.addEventListener('click', function() {
+            btn.addEventListener('click', function(e) {
+                e.stopPropagation();
                 const ean = this.getAttribute('data-ean');
-                printEanLabel(ean);
+                alert(`Drukowanie etykiety z kodem EAN: ${ean}\nTrwa wysyłanie do drukarki...`);
             });
         });
 
-        // Print button in modal
-        document.getElementById('printModalBtn').addEventListener('click', function() {
-            const ean = document.getElementById('eanCodeDisplay').textContent;
-            printEanLabel(ean);
-            barcodeModal.hide();
+        // Add ripple effect to cards
+        const bagCards = document.querySelectorAll('.bag-card-body');
+        bagCards.forEach(card => {
+            card.addEventListener('click', function(e) {
+                const ripple = document.createElement('div');
+                ripple.className = 'ripple';
+                this.appendChild(ripple);
+
+                const rect = this.getBoundingClientRect();
+                const size = Math.max(rect.width, rect.height);
+                ripple.style.width = ripple.style.height = `${size}px`;
+
+                const x = e.clientX - rect.left - size/2;
+                const y = e.clientY - rect.top - size/2;
+                ripple.style.left = `${x}px`;
+                ripple.style.top = `${y}px`;
+
+                setTimeout(() => {
+                    ripple.remove();
+                }, 600);
+            });
         });
-
-        // Function to show EAN barcode in modal
-        function showEanBarcode(ean) {
-            document.getElementById('eanBarcodeDisplay').innerHTML = '';
-            document.getElementById('eanCodeDisplay').textContent = ean;
-
-            JsBarcode("#eanBarcodeDisplay", ean, {
-                format: "EAN13",
-                lineColor: "#000",
-                width: 2,
-                height: 100,
-                displayValue: false
-            });
-
-            barcodeModal.show();
-        }
-
-        // Function to print EAN label
-        function printEanLabel(ean) {
-            // In a real application, this would call an API endpoint to send to the printer
-            // For demo purposes, we'll just show an alert
-            alert(`Drukowanie etykiety z kodem EAN: ${ean}\nTrwa wysyłanie do drukarki...`);
-
-            // You could also implement a fetch call to a backend endpoint:
-            /*
-            fetch('/api/print-label/', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    ean_code: ean
-                })
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    alert('Etykieta pomyślnie wysłana do drukarki');
-                } else {
-                    alert('Błąd podczas wysyłania do drukarki: ' + data.message);
-                }
-            })
-            .catch(error => {
-                console.error('Błąd:', error);
-                alert('Błąd podczas wysyłania zadania drukowania');
-            });
-            */
-        }
     });
 </script>
+
+<style>
+    /* Base styling */
+    .container-fluid {
+        max-width: 1200px;
+    }
+
+    /* Bag list styling */
+    .bag-list {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    /* Bag card styling */
+    .bag-card {
+        background-color: white;
+        border-radius: 16px;
+        border: 2px solid #7e7e7e;
+        overflow: hidden;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        display: flex;
+        flex-direction: column;
+    }
+
+    .bag-card-body {
+        padding: 16px;
+        position: relative;
+        overflow: hidden;
+        cursor: pointer;
+        flex-grow: 1;
+    }
+
+    .bag-card-actions {
+        display: flex;
+        background-color: #f8f9fa;
+        border-top: 1px solid rgba(0,0,0,0.05);
+    }
+
+    .btn-action {
+        flex: 1;
+        border-radius: 0;
+        padding: 12px 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border: none;
+        margin: 0;
+        font-size: 1.1rem;
+    }
+
+    /* Bag elements styling */
+    .bag-number {
+        font-weight: 600;
+        font-size: 1.1rem;
+    }
+
+    .bag-weight {
+        background-color: #f8f9fa;
+        padding: 4px 8px;
+        border-radius: 20px;
+        font-weight: 500;
+        font-size: 0.9rem;
+        color: #212529;
+    }
+
+    .clothing-type {
+        display: inline-flex;
+        align-items: center;
+        padding: 6px 12px;
+        border-radius: 20px;
+        color: white;
+        font-size: 0.9rem;
+        font-weight: 500;
+    }
+
+    .clothing-type.no-type {
+        background-color: #6c757d;
+    }
+
+    .bag-assignment, .bag-time {
+        font-size: 0.85rem;
+        color: #6c757d;
+    }
+
+    .bag-assignment.has-assignment {
+        color: #198754;
+    }
+
+    .bag-assignment.no-assignment {
+        color: #6c757d;
+    }
+
+    /* Empty state styling */
+    .empty-state {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        padding: 3rem 1rem;
+        background-color: white;
+        border-radius: 16px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    }
+
+    .empty-state-icon {
+        font-size: 3rem;
+        color: #6c757d;
+        opacity: 0.5;
+        margin-bottom: 1.5rem;
+    }
+
+    /* Instruction card styling */
+    .instruction-card {
+        background-color: white;
+        border-radius: 16px;
+        overflow: hidden;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    }
+
+    .instruction-header {
+        background-color: #f8f9fa;
+        padding: 12px 16px;
+        font-weight: 600;
+        border-bottom: 1px solid rgba(0,0,0,0.05);
+    }
+
+    .instruction-body {
+        padding: 16px;
+    }
+
+    /* Ripple effect */
+    .ripple {
+        position: absolute;
+        background-color: rgba(255, 255, 255, 0.3);
+        border-radius: 50%;
+        transform: scale(0);
+        animation: ripple 0.6s linear;
+        pointer-events: none;
+    }
+
+    @keyframes ripple {
+        to {
+            transform: scale(2);
+            opacity: 0;
+        }
+    }
+
+    /* Tablet and desktop adjustments */
+    @media (min-width: 768px) {
+        .bag-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 16px;
+        }
+
+        .bag-card {
+            height: 100%;
+        }
+    }
+</style>
 {% endblock %}

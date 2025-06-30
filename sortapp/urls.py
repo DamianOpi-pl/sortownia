@@ -10,6 +10,7 @@ urlpatterns = [
     path('sorted-bags/stats/', views.sorted_bag_stats, name='sorted_bag_stats'),
     path('pending/', views.pending_bags, name='pending_bags'),
     path('pending/edit/<int:bag_id>/', views.edit_pending_bag, name='edit_pending_bag'),
+    path('pending/detail/<int:bag_id>/', views.bag_detail, name='bag_detail'),
     path('mark-sorted/<int:bag_id>/', views.mark_sorted, name='mark_sorted'),
     path('stats/', views.employee_stats, name='employee_stats'),
     path('generate-ean/', views.generate_ean, name='generate_ean'),

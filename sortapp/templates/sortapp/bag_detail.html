@@ -1,0 +1,386 @@
+{% extends 'sortapp/base.html' %}
+{% load sorting_extras %}
+{% load i18n %}
+
+{% block title %}Worek #{{ bag.bag_number }} - Sortownia Odzieży{% endblock %}
+
+{% block header %}Szczegóły worka{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-0 pb-4">
+    <!-- Back button -->
+    <div class="back-button mb-3">
+        <a href="{% url 'pending_bags' %}" class="btn btn-outline-secondary rounded-pill">
+            <i class="fas fa-arrow-left me-2"></i> Powrót
+        </a>
+    </div>
+
+    <!-- Bag header card -->
+    <div class="detail-card mb-3">
+        <div class="detail-card-header d-flex justify-content-between align-items-center">
+            <div class="d-flex align-items-center">
+                <div class="bag-status-icon {% if bag.sorting_complete %}sorted{% else %}pending{% endif %}">
+                    <i class="fas {% if bag.sorting_complete %}fa-check-circle{% else %}fa-clock{% endif %}"></i>
+                </div>
+                <div class="ms-2">
+                    <h4 class="mb-0">{{ bag.bag_number }}</h4>
+                    <span class="text-muted small">
+                        {% if bag.sorting_complete %}
+                            Posortowany
+                        {% else %}
+                            Oczekuje na sortowanie
+                        {% endif %}
+                    </span>
+                </div>
+            </div>
+            <button type="button" class="btn btn-outline-primary rounded-pill print-ean-btn" data-ean="{{ bag.bag_number }}">
+                <i class="fas fa-print me-1"></i> <span class="d-none d-md-inline">Drukuj</span>
+            </button>
+        </div>
+        <div class="barcode-display">
+            <svg id="barcodeDisplay"></svg>
+        </div>
+    </div>
+
+    <!-- Main details -->
+    <div class="detail-card mb-3">
+        <div class="detail-section">
+            <div class="detail-title">Podstawowe informacje</div>
+            
+            <div class="detail-item">
+                <div class="detail-label"><i class="fas fa-tag me-2"></i>Rodzaj odzieży</div>
+                <div class="detail-value">
+                    {% if bag.clothing_type %}
+                        <div class="clothing-type" style="background-color: {{ bag.clothing_type.color }};">
+                            <i class="fas {{ bag.clothing_type.icon }} me-1"></i>
+                            <span>{{ bag.clothing_type.name }}</span>
+                        </div>
+                    {% else %}
+                        <div class="clothing-type no-type">
+                            <i class="fas fa-question-circle me-1"></i>
+                            <span>Brak kategorii</span>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <div class="detail-item">
+                <div class="detail-label"><i class="fas fa-weight-hanging me-2"></i>Waga</div>
+                <div class="detail-value weight-value">{{ bag.weight|format_weight }}</div>
+            </div>
+            
+            <div class="detail-item">
+                <div class="detail-label"><i class="fas fa-user me-2"></i>Przydzielone do</div>
+                <div class="detail-value">
+                    {% if bag.assigned_to %}
+                        <div class="user-badge">
+                            <div class="user-avatar">{{ bag.assigned_to.name|first }}</div>
+                            <span>{{ bag.assigned_to.name }}</span>
+                        </div>
+                    {% else %}
+                        <div class="user-badge unassigned">
+                            <div class="user-avatar"><i class="fas fa-user-slash"></i></div>
+                            <span>Nie przydzielono</span>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <div class="detail-item">
+                <div class="detail-label"><i class="fas fa-calendar-alt me-2"></i>Zarejestrowano</div>
+                <div class="detail-value">
+                    <div>{{ bag.created_at|polish_date:'long' }}, {{ bag.created_at|date:'H:i' }}</div>
+                    <div class="text-muted small">{{ bag.created_at|timesince }} temu</div>
+                </div>
+            </div>
+            
+            {% if bag.notes %}
+            <div class="detail-item">
+                <div class="detail-label"><i class="fas fa-sticky-note me-2"></i>Notatki</div>
+                <div class="detail-value">
+                    <div class="notes-box">{{ bag.notes }}</div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Sorting information (if completed) -->
+    {% if bag.sorting_complete %}
+    <div class="detail-card mb-3">
+        <div class="detail-section">
+            <div class="detail-title">Informacje o sortowaniu</div>
+            
+            <div class="detail-item">
+                <div class="detail-label"><i class="fas fa-user-check me-2"></i>Posortowane przez</div>
+                <div class="detail-value">
+                    <div class="user-badge">
+                        <div class="user-avatar">{{ bag.sorted_by.name|first }}</div>
+                        <span>{{ bag.sorted_by.name }}</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="detail-item">
+                <div class="detail-label"><i class="fas fa-calendar-check me-2"></i>Data sortowania</div>
+                <div class="detail-value">
+                    {{ bag.sorting_completed_at|polish_date:'long' }}, {{ bag.sorting_completed_at|date:'H:i' }}
+                </div>
+            </div>
+            
+            <div class="stats-grid">
+                <div class="stat-box">
+                    <div class="stat-value">{{ bag.sorting_time_minutes }}</div>
+                    <div class="stat-label">minut</div>
+                </div>
+                
+                <div class="stat-box">
+                    <div class="stat-value">{{ bag.weight|format_weight }}</div>
+                    <div class="stat-label">waga</div>
+                </div>
+                
+                <div class="stat-box">
+                    <div class="stat-value">{{ bag.efficiency_kg_per_hour|default:"0" }}</div>
+                    <div class="stat-label">kg/godz</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Action buttons -->
+    <div class="action-buttons">
+        {% if not bag.sorting_complete %}
+            <a href="{% url 'mark_sorted' bag.id %}" class="btn btn-success btn-lg btn-block">
+                <i class="fas fa-check-circle me-2"></i> Oznacz jako posortowane
+            </a>
+            <a href="{% url 'edit_pending_bag' bag.id %}" class="btn btn-primary btn-lg btn-block">
+                <i class="fas fa-edit me-2"></i> Edytuj dane worka
+            </a>
+        {% else %}
+            <a href="#" class="btn btn-outline-primary btn-lg btn-block">
+                <i class="fas fa-file-pdf me-2"></i> Generuj raport PDF
+            </a>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Generate barcode
+        JsBarcode("#barcodeDisplay", "{{ bag.bag_number }}", {
+            format: "EAN13",
+            lineColor: "#000",
+            width: 2,
+            height: 60,
+            displayValue: true,
+            fontSize: 14,
+            textMargin: 6,
+            margin: 0
+        });
+        
+        // Print EAN label button handler
+        const printEanBtns = document.querySelectorAll('.print-ean-btn');
+        printEanBtns.forEach(btn => {
+            btn.addEventListener('click', function() {
+                const ean = this.getAttribute('data-ean');
+                alert(`Drukowanie etykiety z kodem EAN: ${ean}\nTrwa wysyłanie do drukarki...`);
+            });
+        });
+    });
+</script>
+
+<style>
+    /* Base styles */
+    .container-fluid {
+        max-width: 800px;
+    }
+    
+    /* Detail card styling */
+    .detail-card {
+        background-color: white;
+        border-radius: 16px;
+        overflow: hidden;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    }
+    
+    .detail-card-header {
+        padding: 16px;
+        border-bottom: 1px solid rgba(0,0,0,0.05);
+    }
+    
+    .detail-section {
+        padding: 16px;
+    }
+    
+    .detail-title {
+        font-weight: 600;
+        margin-bottom: 16px;
+        color: #495057;
+    }
+    
+    /* Barcode display */
+    .barcode-display {
+        padding: 16px;
+        text-align: center;
+        background-color: #f8f9fa;
+    }
+    
+    /* Status icon */
+    .bag-status-icon {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.25rem;
+        color: white;
+    }
+    
+    .bag-status-icon.sorted {
+        background-color: #198754;
+    }
+    
+    .bag-status-icon.pending {
+        background-color: #ffc107;
+    }
+    
+    /* Detail items */
+    .detail-item {
+        margin-bottom: 16px;
+        display: flex;
+        flex-direction: column;
+    }
+    
+    .detail-label {
+        font-size: 0.9rem;
+        color: #6c757d;
+        margin-bottom: 4px;
+    }
+    
+    .detail-value {
+        font-weight: 500;
+    }
+    
+    .weight-value {
+        font-size: 1.1rem;
+        font-weight: 600;
+    }
+    
+    /* Clothing type badge */
+    .clothing-type {
+        display: inline-flex;
+        align-items: center;
+        padding: 8px 14px;
+        border-radius: 20px;
+        color: white;
+        font-weight: 500;
+    }
+    
+    .clothing-type.no-type {
+        background-color: #6c757d;
+    }
+    
+    /* User badge */
+    .user-badge {
+        display: flex;
+        align-items: center;
+    }
+    
+    .user-badge.unassigned {
+        color: #6c757d;
+    }
+    
+    .user-avatar {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        background-color: #0d6efd;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-right: 8px;
+        color: white;
+        font-weight: 600;
+    }
+    
+    .user-badge.unassigned .user-avatar {
+        background-color: #6c757d;
+    }
+    
+    /* Notes box */
+    .notes-box {
+        background-color: #f8f9fa;
+        padding: 12px;
+        border-radius: 12px;
+        border: 1px solid #e9ecef;
+        white-space: pre-line;
+        font-weight: normal;
+    }
+    
+    /* Stats grid */
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 10px;
+        margin-top: 16px;
+    }
+    
+    .stat-box {
+        background-color: #f8f9fa;
+        border-radius: 12px;
+        padding: 12px;
+        text-align: center;
+    }
+    
+    .stat-value {
+        font-size: 1.5rem;
+        font-weight: 600;
+        color: #0d6efd;
+    }
+    
+    .stat-label {
+        font-size: 0.8rem;
+        color: #6c757d;
+    }
+    
+    /* Action buttons */
+    .action-buttons {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
+    
+    .btn-block {
+        display: block;
+        width: 100%;
+        border-radius: 12px;
+        padding: 12px;
+    }
+    
+    /* Media queries */
+    @media (min-width: 768px) {
+        .detail-item {
+            flex-direction: row;
+            align-items: center;
+        }
+        
+        .detail-label {
+            width: 200px;
+            margin-bottom: 0;
+        }
+        
+        .action-buttons {
+            flex-direction: row;
+        }
+        
+        .btn-block {
+            flex: 1;
+        }
+    }
+</style>
+{% endblock %}

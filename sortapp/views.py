@@ -222,6 +222,11 @@ def pending_bags(request):
     bags = Bag.objects.filter(is_sorted=False).order_by('created_at')
     return render(request, 'sortapp/pending_bags.html', {'bags': bags})
 
+
+def bag_detail(request, bag_id):
+    bag = get_object_or_404(Bag, id=bag_id)
+    return render(request, 'sortapp/bag_detail.html', {'bag': bag})
+
 def edit_pending_bag(request, bag_id):
     bag = Bag.objects.get(id=bag_id)
     if bag.is_sorted:

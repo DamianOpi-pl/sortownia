@@ -1,17 +1,28 @@
-version: '3.8'
+version: '3'
 
 services:
   web:
     build: .
-    container_name: sortownia-app
     restart: always
-    volumes:
-      - ./data:/app/data
-      - ./staticfiles:/app/staticfiles
     ports:
       - "8000:8000"
-    command: gunicorn --bind 0.0.0.0:8000 sortownia_project.wsgi:application
+    depends_on:
+      - db
     environment:
-      - DJANGO_DEBUG=False
-      - DJANGO_ALLOWED_HOSTS=localhost,157.230.20.29
-      - DJANGO_SECRET_KEY=3rw3f2-32mM6^54fJJhh22H22Z
+      - DATABASE_URL=postgres://postgres:postgres@db:5432/sortownia
+    volumes:
+      - ./:/app
+      - ./media:/app/media
+      - ./staticfiles:/app/staticfiles
+
+  db:
+    image: postgres:15
+    restart: always
+    environment:
+      - POSTGRES_DB=sortownia
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+    volumes:
+      - ./postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5433:5432"

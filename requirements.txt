@@ -1,4 +1,6 @@
 Django==5.2.3
 asgiref==3.8.1
 sqlparse==0.5.3
+psycopg2-binary==2.9.6
+dj-database-url==2.1.0
 gunicorn==21.2.0

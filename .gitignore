@@ -29,8 +29,9 @@ local_settings.py
 db.sqlite3
 db.sqlite3-journal
 media
-data/*
-!data/.gitkeep
+
+# PostgreSQL
+postgres_data/
 
 # Environments
 .env
@@ -102,3 +103,8 @@ Thumbs.db
 ehthumbs.db
 Desktop.ini
 $RECYCLE.BIN/
+
+# Data and backups
+data/*
+!data/.gitkeep
+backups/

@@ -146,11 +146,56 @@
         min-width: 100px;
         text-align: center;
     }
+    
+    .weight-history {
+        background-color: #f8f9fa;
+        border-radius: 10px;
+        padding: 15px;
+        margin-bottom: 20px;
+        max-height: 300px;
+        overflow-y: auto;
+    }
+    
+    .weight-history-title {
+        font-weight: 600;
+        margin-bottom: 15px;
+    }
+    
+    .weight-history-item {
+        padding: 10px;
+        border-left: 3px solid #3498db;
+        margin-bottom: 10px;
+        background-color: white;
+        border-radius: 0 5px 5px 0;
+    }
+    
+    .weight-history-item.final {
+        border-left-color: #e74c3c;
+    }
+    
+    .weight-change {
+        font-weight: 600;
+    }
+    
+    .weight-timestamp {
+        font-size: 0.9rem;
+        color: #6c757d;
+    }
+    
+    .weight-arrow {
+        color: #6c757d;
+        margin: 0 5px;
+    }
 </style>
 {% endblock %}
 
 {% block content %}
 <div class="container py-4">
+    {% if bag.is_closed %}
+    <div class="alert alert-warning mb-4">
+        <i class="fas fa-lock me-2"></i> <strong>Uwaga:</strong> Ta torba jest zamknięta i nie może być edytowana.
+    </div>
+    {% endif %}
     <div class="row mb-4">
         <div class="col-md-12">
             <div class="bag-details">
@@ -175,6 +220,65 @@
                     <div class="detail-label">Data utworzenia:</div>
                     <div class="detail-value">{{ bag.created_at|date:"d.m.Y H:i" }}</div>
                 </div>
+                <div class="detail-row">
+                    <div class="detail-label">Status:</div>
+                    <div class="detail-value">
+                        {% if bag.is_closed %}
+                            <span class="badge bg-secondary">
+                                <i class="fas fa-lock me-1"></i> Zamknięta
+                                {% if bag.closed_at %}
+                                    <small>({{ bag.closed_at|date:"d.m.Y H:i" }})</small>
+                                {% endif %}
+                            </span>
+                        {% else %}
+                            <span class="badge bg-success">
+                                <i class="fas fa-unlock me-1"></i> Otwarta
+                            </span>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Weight History Section -->
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <div class="weight-history">
+                <h5 class="weight-history-title"><i class="fas fa-history me-2"></i> Historia wagi</h5>
+                {% if bag.weight_history.all %}
+                    {% for history in bag.weight_history.all %}
+                        <div class="weight-history-item {% if history.is_final %}final{% endif %}">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div class="weight-change">
+                                    <span>{{ history.previous_weight }} kg</span>
+                                    <span class="weight-arrow"><i class="fas fa-arrow-right"></i></span>
+                                    <span>{{ history.new_weight }} kg</span>
+                                    {% if history.is_final %}
+                                        <span class="badge bg-danger ms-2">Finalna</span>
+                                    {% endif %}
+                                </div>
+                                <div class="weight-timestamp">
+                                    <i class="far fa-clock me-1"></i> {{ history.changed_at|date:"d.m.Y H:i" }}
+                                </div>
+                            </div>
+                            {% if history.changed_by %}
+                                <div class="mt-1 small">
+                                    <i class="fas fa-user me-1"></i> {{ history.changed_by.username }}
+                                </div>
+                            {% endif %}
+                            {% if history.notes %}
+                                <div class="mt-1 small text-muted">
+                                    <i class="fas fa-comment me-1"></i> {{ history.notes }}
+                                </div>
+                            {% endif %}
+                        </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle me-2"></i> Brak historii wagi dla tej torby.
+                    </div>
+                {% endif %}
             </div>
         </div>
     </div>
@@ -278,14 +382,40 @@
             </div>
         </div>
 
+        <!-- Close Bag Option -->
+        <div class="form-section">
+            <h2 class="form-section-title">
+                <i class="fas fa-lock me-2"></i> Opcje zamknięcia
+            </h2>
+            <div class="form-check mb-3">
+                {{ form.close_bag }}
+                <label class="form-check-label" for="{{ form.close_bag.id_for_label }}">
+                    {{ form.close_bag.label }}
+                </label>
+                <div class="form-text">
+                    <i class="fas fa-info-circle me-1"></i> Po zamknięciu torby nie będzie można jej edytować. Ta operacja jest nieodwracalna.
+                </div>
+            </div>
+        </div>
+
         <!-- Action Buttons -->
         <div class="d-flex justify-content-between mb-4">
-            <a href="{% url 'sorted_bags' %}" class="btn btn-outline-secondary">
-                <i class="fas fa-arrow-left me-2"></i> Powrót do listy
-            </a>
-            <button type="submit" class="btn btn-primary">
-                <i class="fas fa-save me-2"></i> Zapisz zmiany
-            </button>
+            <div>
+                <a href="{% url 'sorted_bags' %}" class="btn btn-outline-secondary">
+                    <i class="fas fa-arrow-left me-2"></i> Powrót do listy
+                </a>
+                <a href="{% url 'sorted_bag_weight_history' bag.id %}" class="btn btn-outline-info ms-2">
+                    <i class="fas fa-history me-2"></i> Pełna historia wagi
+                </a>
+            </div>
+            <div>
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-save me-2"></i> Zapisz zmiany
+                </button>
+                <button type="submit" name="close_and_save" class="btn btn-danger ms-2" onclick="document.getElementById('{{ form.close_bag.id_for_label }}').checked = true;">
+                    <i class="fas fa-lock me-2"></i> Zamknij i zapisz
+                </button>
+            </div>
         </div>
     </form>
 </div>
@@ -298,15 +428,19 @@
         const weightInput = document.getElementById('{{ form.weight.id_for_label }}');
         const categoryCards = document.querySelectorAll('.category-card');
 
-        // Set initial selected state for category cards
+        // Enhanced category selection functionality
         categoryCards.forEach(card => {
             const radio = card.querySelector('input[type="radio"]');
             if (radio && radio.checked) {
                 card.classList.add('selected');
+                console.log('Initially selected category:', radio.value);
             }
 
-            // Add click event listener
-            card.addEventListener('click', function() {
+            // Add click event listener with improved handling
+            card.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                
                 // Remove selected class from all cards
                 categoryCards.forEach(c => c.classList.remove('selected'));
 
@@ -317,7 +451,9 @@
                 const radio = card.querySelector('input[type="radio"]');
                 if (radio) {
                     radio.checked = true;
+                    // Ensure the change event propagates
                     radio.dispatchEvent(new Event('change', { bubbles: true }));
+                    console.log('Category selected:', radio.value);
                 }
 
                 // Add some visual feedback
@@ -326,6 +462,20 @@
                     card.style.transform = '';
                 }, 200);
             });
+            
+            // Also handle the radio button change event
+            if (radio) {
+                radio.addEventListener('change', function() {
+                    if (this.checked) {
+                        // Remove selected class from all cards
+                        categoryCards.forEach(c => c.classList.remove('selected'));
+                        
+                        // Add selected class to this card
+                        card.classList.add('selected');
+                        console.log('Radio changed, category selected:', this.value);
+                    }
+                });
+            }
         });
 
         // Clear and reset weight buttons
@@ -371,6 +521,18 @@
                 weightInput.focus();
             });
         });
+        
+        // After a short delay, verify that any initially checked categories are properly selected
+        setTimeout(() => {
+            categoryCards.forEach(card => {
+                const radio = card.querySelector('input[type="radio"]');
+                
+                if (radio && radio.checked && !card.classList.contains('selected')) {
+                    console.log('Fixing initial selection for category:', radio.value);
+                    card.classList.add('selected');
+                }
+            });
+        }, 200);
     });
 </script>
 {% endblock %}

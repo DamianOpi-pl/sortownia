@@ -3,29 +3,113 @@
 
 {% block title %}Strona główna - Sortownia Odzieży{% endblock %}
 
+{% block extra_css %}
+<style>
+    .stats-card {
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+        border-radius: 15px;
+        overflow: hidden;
+        border: none;
+        height: 100%;
+    }
+    
+    .stats-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+    }
+    
+    .quick-action-card {
+        border: none;
+        border-radius: 15px;
+        overflow: hidden;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        transition: box-shadow 0.3s ease;
+        margin-bottom: 20px;
+    }
+    
+    .quick-action-card:hover {
+        box-shadow: 0 8px 15px rgba(0,0,0,0.1);
+    }
+    
+    .quick-action-card .card-header {
+        padding: 15px 20px;
+        font-weight: 600;
+        font-size: 1.1rem;
+    }
+    
+    .quick-action-card .card-body {
+        padding: 20px;
+    }
+    
+    .btn-lg {
+        padding: 12px 20px;
+        font-weight: 500;
+        border-radius: 10px;
+        transition: all 0.2s ease;
+    }
+    
+    .btn-lg:hover {
+        transform: translateY(-2px);
+    }
+    
+    .about-card {
+        border: none;
+        border-radius: 15px;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+    }
+    
+    .about-card .card-header {
+        background-color: #6c757d;
+        color: white;
+        font-weight: 600;
+    }
+    
+    .workflow-section {
+        margin-top: 1.5rem;
+        padding: 15px;
+        background-color: rgba(0,0,0,0.03);
+        border-radius: 10px;
+    }
+    
+    .workflow-section h5 {
+        font-weight: 600;
+    }
+</style>
+{% endblock %}
+
 {% block header %}Panel główny{% endblock %}
 
 {% block content %}
-<div class="row mb-5">
-    <div class="col-md-4">
+<div class="row mb-4">
+    <div class="col-md-3">
         <div class="card stats-card">
             <div class="stats-value">{{ unsorted_count }}</div>
-            <div class="stats-label">{{ unsorted_count|polish_pluralize:"Oczekująca torba,Oczekujące torby,Oczekujących toreb" }}</div>
+            <div class="stats-label">{{ unsorted_count|polish_pluralize:"Worek,worki,worków" }} oryginału w trakcie sortowania</div>
             <div class="mt-3">
-                <a href="{% url 'pending_bags' %}" class="btn btn-primary">Zobacz oczekujące</a>
+                <a href="{% url 'pending_bags' %}" class="btn btn-primary">Sprawdź</a>
             </div>
         </div>
     </div>
-    <div class="col-md-4">
+    <div class="col-md-3">
+        <div class="card stats-card">
+            <div class="stats-value">{{ closed_count }}</div>
+            <div class="stats-label">{{ closed_count|polish_pluralize:"Worek,worki,worków" }} oryginału zakończonych</div>
+            <div class="mt-3">
+                <a href="{% url 'closed_bags' %}" class="btn btn-primary">Sprawdź</a>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
         <div class="card stats-card">
             <div class="stats-value">{{ today_weight|format_weight }}</div>
             <div class="stats-label">Posortowane dzisiaj</div>
+            <div class="mt-2 text-muted">{{ today_closed_count }} {{ today_closed_count|polish_pluralize:"worek,worki,worków" }}</div>
             <div class="mt-3">
-                <a href="{% url 'employee_stats' %}" class="btn btn-primary">Zobacz statystyki</a>
+                <a href="{% url 'employee_stats' %}" class="btn btn-primary">Statystyki</a>
             </div>
         </div>
     </div>
-    <div class="col-md-4">
+    <div class="col-md-3">
         <div class="card stats-card">
             {% if top_sorter %}
                 <div class="stats-value">{{ top_sorter.name }}</div>
@@ -41,41 +125,72 @@
 
 <div class="row mt-4">
     <div class="col-md-6">
-        <div class="card">
-            <div class="card-header">
-                <i class="fas fa-tasks me-2"></i> Szybkie akcje
+        <div class="card mb-4 quick-action-card">
+            <div class="card-header bg-primary text-white">
+                <i class="fas fa-tshirt me-2"></i> Szybkie akcje - Worki oryginalne (N-bag)
             </div>
             <div class="card-body">
                 <div class="d-grid gap-3">
                     <a href="{% url 'register_bag' %}" class="btn btn-lg btn-primary">
-                        <i class="fas fa-plus-circle me-2"></i> Zarejestruj nową torbę (N-bag)
-                    </a>
-                    <a href="{% url 'register_sorted_bag' %}" class="btn btn-lg btn-warning text-white">
-                        <i class="fas fa-tags me-2"></i> Zarejestruj posortowaną torbę (S-bag)
+                        <i class="fas fa-plus-circle me-2"></i> Zarejestruj nowy worek
                     </a>
                     <a href="{% url 'pending_bags' %}" class="btn btn-lg btn-success">
-                        <i class="fas fa-check-circle me-2"></i> Oznacz torby jako posortowane
+                        <i class="fas fa-check-circle me-2"></i> Oznacz worki jako posortowane
                     </a>
-                    <a href="{% url 'employee_stats' %}" class="btn btn-lg btn-info text-white">
-                        <i class="fas fa-chart-bar me-2"></i> Zobacz dzisiejsze statystyki
+                    <a href="{% url 'closed_bags' %}" class="btn btn-lg btn-success" style="background-color: #28a745;">
+                        <i class="fas fa-clipboard-check me-2"></i> Przejrzyj zamknięte worki
+                    </a>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card quick-action-card">
+            <div class="card-header bg-warning text-white">
+                <i class="fas fa-tags me-2"></i> Szybkie akcje - Worki posortowane (S-bag)
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-3">
+                    <a href="{% url 'register_sorted_bag' %}" class="btn btn-lg btn-warning text-white">
+                        <i class="fas fa-plus-circle me-2"></i> Zarejestruj nowy worek
+                    </a>
+                    <a href="{% url 'sorted_bags' %}" class="btn btn-lg btn-info text-white">
+                        <i class="fas fa-boxes me-2"></i> Zarządzaj workami
+                    </a>
+                    <a href="{% url 'employee_stats' %}" class="btn btn-lg btn-secondary">
+                        <i class="fas fa-chart-bar me-2"></i> Zobacz statystyki
                     </a>
                 </div>
             </div>
         </div>
     </div>
     <div class="col-md-6">
-        <div class="card">
+        <div class="card about-card">
             <div class="card-header">
                 <i class="fas fa-info-circle me-2"></i> O systemie
             </div>
             <div class="card-body">
                 <p>Witamy w Systemie Sortowania Odzieży. Ta aplikacja pomaga śledzić przepływ pracy w Twojej sortowni odzieży:</p>
-                <ul>
-                    <li>Rejestruj torby, gdy są przygotowane do sortowania</li>
-                    <li>Oznaczaj torby jako posortowane po zakończeniu pracy</li>
-                    <li>Śledź wydajność pracowników i codzienne statystyki</li>
-                </ul>
-                <p class="card-text">Użyj paska nawigacyjnego powyżej lub przycisków szybkich akcji, aby rozpocząć.</p>
+                
+                <div class="workflow-section">
+                    <h5><i class="fas fa-tshirt me-2 text-primary"></i>Worki oryginalne (N-bag)</h5>
+                    <ul>
+                        <li>Rejestruj nowe worki oryginalne, gdy przychodzą do sortowni</li>
+                        <li>Przydzielaj worki do pracowników odpowiedzialnych za sortowanie</li>
+                        <li>Oznaczaj worki jako posortowane po zakończeniu pracy</li>
+                        <li>Przeglądaj zakończone (zamknięte) worki w archiwum</li>
+                    </ul>
+                </div>
+                
+                <div class="workflow-section">
+                    <h5><i class="fas fa-tags me-2 text-warning"></i>Worki posortowane (S-bag)</h5>
+                    <ul>
+                        <li>Rejestruj nowe worki z posortowaną odzieżą według kategorii</li>
+                        <li>Zarządzaj workami posortowanymi, edytuj je lub zamknij gdy skończysz</li>
+                        <li>Śledź wydajność pracowników i codzienne statystyki sortowania</li>
+                    </ul>
+                </div>
+                
+                <p class="card-text mt-4 text-center fw-bold">Użyj paska nawigacyjnego lub przycisków szybkich akcji, aby rozpocząć pracę w systemie.</p>
             </div>
         </div>
     </div>

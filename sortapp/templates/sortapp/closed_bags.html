@@ -1,0 +1,439 @@
+{% extends 'sortapp/base.html' %}
+{% load sorting_extras %}
+{% load i18n %}
+
+{% block title %}Zamknięte worki - Sortownia Odzieży{% endblock %}
+
+{% block header %}Worki posortowane{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-0">
+    <!-- Header with filters -->
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h5 class="mb-0"><i class="fas fa-check-circle me-2" style="color: #b96b07;"></i> Worki posortowane</h5>
+        <div class="d-flex">
+            <button class="btn me-2" style="background-color: #b96b07; color: white;" type="button" data-bs-toggle="collapse" data-bs-target="#filtersCollapse">
+                <i class="fas fa-filter me-2"></i> Filtry
+            </button>
+            <a href="{% url 'home' %}" class="btn btn-outline-secondary">
+                <i class="fas fa-home me-2"></i> Strona główna
+            </a>
+        </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="collapse mb-4" id="filtersCollapse">
+        <div class="card card-body">
+            <form method="get" class="row g-3">
+                <div class="col-md-4">
+                    <label for="dateFilter" class="form-label">Data sortowania</label>
+                    <input type="date" class="form-control" id="dateFilter" name="date" value="{{ date_filter|default:'' }}">
+                </div>
+                <div class="col-md-4">
+                    <label for="categoryFilter" class="form-label">Kategoria odzieży</label>
+                    <select class="form-select" id="categoryFilter" name="category">
+                        <option value="">Wszystkie kategorie</option>
+                        {% for category in categories %}
+                            <option value="{{ category.id }}" {% if category_filter == category.id|stringformat:"s" %}selected{% endif %}>
+                                {{ category.name }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <label for="employeeFilter" class="form-label">Posortowane przez</label>
+                    <select class="form-select" id="employeeFilter" name="employee">
+                        <option value="">Wszyscy pracownicy</option>
+                        {% for employee in employees %}
+                            <option value="{{ employee.id }}" {% if employee_filter == employee.id|stringformat:"s" %}selected{% endif %}>
+                                {{ employee.name }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-12 d-flex justify-content-end">
+                    <button type="submit" class="btn me-2" style="background-color: #b96b07; color: white;">Zastosuj filtry</button>
+                    <a href="{% url 'closed_bags' %}" class="btn btn-outline-secondary">Wyczyść filtry</a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    {% if bags %}
+        <div class="bag-list">
+            {% for bag in bags %}
+            <div class="bag-card" data-bag-id="{{ bag.id }}">
+                <!-- Main info -->
+                <div class="bag-card-body" onclick="window.location.href='{% url 'bag_detail' bag.id %}' + (getFilterParams() ? '?return_to=closed_bags' + getFilterParams() : '');">
+                    <!-- Bag number and weight -->
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div class="bag-number">
+                            <i class="fas fa-barcode me-1"></i> {{ bag.bag_number }}
+                        </div>
+                        <div class="bag-weight">
+                            <i class="fas fa-weight-hanging me-1"></i> {{ bag.weight|format_weight }}
+                        </div>
+                    </div>
+                    
+                    <!-- Employee badge -->
+                    <div class="employee-badge mt-2 mb-2">
+                        <div class="employee-circle">
+                            {% if bag.sorted_by %}
+                                {{ bag.sorted_by.name|first }}
+                            {% else %}
+                                ?
+                            {% endif %}
+                        </div>
+                        <span class="employee-name">
+                            {% if bag.sorted_by %}
+                                {{ bag.sorted_by.name }}
+                            {% else %}
+                                Brak informacji
+                            {% endif %}
+                        </span>
+                    </div>
+                    
+                    <!-- Dates -->
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div class="date-info">
+                            <i class="fas fa-calendar me-1"></i> {{ bag.sorted_at|date:"d.m.Y H:i" }}
+                        </div>
+                        <div class="sorting-duration">
+                            <i class="fas fa-hourglass-end me-1"></i> 
+                            {{ bag.created_at|timedelta:bag.sorted_at }}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Action buttons -->
+                <div class="bag-card-actions">
+                    <a href="{% url 'bag_detail' bag.id %}" class="btn btn-action info-button">
+                        <i class="fas fa-info-circle"></i>
+                    </a>
+                    <button type="button" class="btn btn-action print-button print-ean-btn" data-ean="{{ bag.bag_number }}">
+                        <i class="fas fa-print"></i>
+                    </button>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="empty-state">
+            <div class="empty-state-icon">
+                <i class="fas fa-exclamation-circle"></i>
+            </div>
+            <h5>Brak posortowanych worków</h5>
+            <p class="text-muted mb-4">
+                {% if date_filter or category_filter or employee_filter %}
+                    Brak worków pasujących do wybranych filtrów.
+                {% else %}
+                    Żaden worek nie został jeszcze posortowany.
+                {% endif %}
+            </p>
+            <div class="d-flex justify-content-center">
+                {% if date_filter or category_filter or employee_filter %}
+                    <a href="{% url 'closed_bags' %}" class="btn" style="background-color: #b96b07; color: white;">
+                        <i class="fas fa-filter me-2"></i> Wyczyść filtry
+                    </a>
+                {% else %}
+                    <a href="{% url 'pending_bags' %}" class="btn" style="background-color: #b96b07; color: white;">
+                        <i class="fas fa-list me-2"></i> Zobacz oczekujące worki
+                    </a>
+                {% endif %}
+            </div>
+        </div>
+    {% endif %}
+
+    {% if bags %}
+    <div class="pagination-container text-center mt-4 mb-3">
+        <nav aria-label="Nawigacja po stronach">
+            <ul class="pagination justify-content-center">
+                {% if bags.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page=1{% if date_filter %}&date={{ date_filter }}{% endif %}{% if category_filter %}&category={{ category_filter }}{% endif %}{% if employee_filter %}&employee={{ employee_filter }}{% endif %}" aria-label="Pierwsza">
+                            <span aria-hidden="true">&laquo;&laquo;</span>
+                        </a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ bags.previous_page_number }}{% if date_filter %}&date={{ date_filter }}{% endif %}{% if category_filter %}&category={{ category_filter }}{% endif %}{% if employee_filter %}&employee={{ employee_filter }}{% endif %}" aria-label="Poprzednia">
+                            <span aria-hidden="true">&laquo;</span>
+                        </a>
+                    </li>
+                {% else %}
+                    <li class="page-item disabled">
+                        <span class="page-link">&laquo;</span>
+                    </li>
+                {% endif %}
+
+                {% for i in bags.paginator.page_range %}
+                    {% if bags.number == i %}
+                        <li class="page-item active"><span class="page-link">{{ i }}</span></li>
+                    {% elif i > bags.number|add:"-3" and i < bags.number|add:"3" %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ i }}{% if date_filter %}&date={{ date_filter }}{% endif %}{% if category_filter %}&category={{ category_filter }}{% endif %}{% if employee_filter %}&employee={{ employee_filter }}{% endif %}">{{ i }}</a>
+                        </li>
+                    {% endif %}
+                {% endfor %}
+
+                {% if bags.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ bags.next_page_number }}{% if date_filter %}&date={{ date_filter }}{% endif %}{% if category_filter %}&category={{ category_filter }}{% endif %}{% if employee_filter %}&employee={{ employee_filter }}{% endif %}" aria-label="Następna">
+                            <span aria-hidden="true">&raquo;</span>
+                        </a>
+                    </li>
+                {% else %}
+                    <li class="page-item disabled">
+                        <span class="page-link">&raquo;</span>
+                    </li>
+                {% endif %}
+            </ul>
+        </nav>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
+<script>
+    // Helper function to preserve query parameters
+    function getFilterParams() {
+        const params = new URLSearchParams(window.location.search);
+        let filterString = '';
+        
+        if (params.has('date')) {
+            filterString += `&date=${params.get('date')}`;
+        }
+        if (params.has('category')) {
+            filterString += `&category=${params.get('category')}`;
+        }
+        if (params.has('employee')) {
+            filterString += `&employee=${params.get('employee')}`;
+        }
+        
+        return filterString;
+    }
+    
+    document.addEventListener('DOMContentLoaded', function() {
+        // Print EAN label functionality
+        const printEanBtns = document.querySelectorAll('.print-ean-btn');
+        printEanBtns.forEach(btn => {
+            btn.addEventListener('click', function(e) {
+                e.stopPropagation();
+                const ean = this.getAttribute('data-ean');
+                alert(`Drukowanie etykiety z kodem EAN: ${ean}\nTrwa wysyłanie do drukarki...`);
+            });
+        });
+
+        // Add ripple effect to cards
+        const bagCards = document.querySelectorAll('.bag-card-body');
+        bagCards.forEach(card => {
+            card.addEventListener('click', function(e) {
+                const ripple = document.createElement('div');
+                ripple.className = 'ripple';
+                this.appendChild(ripple);
+
+                const rect = this.getBoundingClientRect();
+                const size = Math.max(rect.width, rect.height);
+                ripple.style.width = ripple.style.height = `${size}px`;
+
+                const x = e.clientX - rect.left - size/2;
+                const y = e.clientY - rect.top - size/2;
+                ripple.style.left = `${x}px`;
+                ripple.style.top = `${y}px`;
+
+                setTimeout(() => {
+                    ripple.remove();
+                }, 600);
+            });
+        });
+    });
+</script>
+
+<style>
+    /* Base styling */
+    .container-fluid {
+        max-width: 1200px;
+    }
+
+    /* Bag list styling */
+    .bag-list {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: 16px;
+    }
+
+    /* Bag card styling */
+    .bag-card {
+        background-color: white;
+        border-radius: 0;
+        border: 1px solid #dee2e6;
+        overflow: hidden;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        display: flex;
+        flex-direction: column;
+    }
+
+    .bag-card-body {
+        padding: 16px;
+        position: relative;
+        overflow: hidden;
+        cursor: pointer;
+        flex-grow: 1;
+    }
+
+    .bag-card-actions {
+        display: flex;
+        height: 48px;
+    }
+
+    .btn-action {
+        flex: 1;
+        border-radius: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border: none;
+        margin: 0;
+        font-size: 1.1rem;
+        height: 100%;
+    }
+    
+    .info-button {
+        background-color: #b96b07;
+        color: white;
+    }
+    
+    .print-button {
+        background-color: #6c757d;
+        color: white;
+    }
+
+    /* Bag elements styling */
+    .bag-number {
+        font-weight: 600;
+        font-size: 0.95rem;
+    }
+
+    .bag-weight {
+        font-weight: 500;
+        font-size: 0.85rem;
+        color: #212529;
+    }
+    
+    .employee-badge {
+        display: flex;
+        align-items: center;
+    }
+    
+    .employee-circle {
+        width: 30px;
+        height: 30px;
+        background-color: #333;
+        color: white;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+        margin-right: 8px;
+    }
+    
+    .employee-name {
+        font-size: 0.9rem;
+        font-weight: 500;
+    }
+    
+    .date-info, .sorting-duration {
+        font-size: 0.8rem;
+        color: #6c757d;
+    }
+
+    /* Empty state styling */
+    .empty-state {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        padding: 2rem 1rem;
+        background-color: white;
+        border: 1px solid #dee2e6;
+        margin: 2rem auto;
+        max-width: 500px;
+    }
+
+    .empty-state-icon {
+        font-size: 3rem;
+        color: #b96b07;
+        margin-bottom: 1rem;
+    }
+
+    /* Pagination styling */
+    .pagination-container {
+        display: flex;
+        justify-content: center;
+        margin-top: 30px;
+    }
+    
+    .pagination {
+        display: inline-flex;
+        background-color: white;
+    }
+    
+    .page-item .page-link {
+        border: none;
+        width: 40px;
+        height: 40px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #495057;
+        background-color: #f8f9fa;
+        margin: 0 2px;
+    }
+    
+    .page-item.active .page-link {
+        background-color: #007bff;
+        color: white;
+    }
+    
+    .page-item.disabled .page-link {
+        color: #6c757d;
+        opacity: 0.5;
+        background-color: #f8f9fa;
+    }
+
+    /* Ripple effect */
+    .ripple {
+        position: absolute;
+        background-color: rgba(0, 0, 0, 0.1);
+        border-radius: 50%;
+        transform: scale(0);
+        animation: ripple 0.6s linear;
+        pointer-events: none;
+    }
+
+    @keyframes ripple {
+        to {
+            transform: scale(2);
+            opacity: 0;
+        }
+    }
+
+    /* Pass filter parameters to bag detail links */
+    .bag-card-body {
+        position: relative;
+    }
+    
+    .bag-card-body::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        cursor: pointer;
+    }
+</style>
+{% endblock %}

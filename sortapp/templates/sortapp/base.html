@@ -83,6 +83,7 @@
         .sidebar-nav .nav-link.active {
             background-color: rgba(52, 152, 219, 0.1);
             color: var(--primary-color);
+            border-left-width: 3px;
         }
 
         .sidebar-nav .dropdown-menu {
@@ -303,6 +304,47 @@
                 max-width: var(--sidebar-width);
             }
         }
+        
+        /* Tablet-specific styles */
+        @media (min-width: 769px) and (max-width: 1024px) {
+            .card {
+                margin-bottom: 20px;
+            }
+            
+            .stats-value {
+                font-size: 2.2rem;
+            }
+            
+            .btn {
+                padding: 0.7rem 1.2rem;
+                font-size: 1.1rem;
+            }
+            
+            .navbar-brand {
+                font-size: 1.5rem;
+            }
+            
+            .display-5 {
+                font-size: 2rem;
+            }
+            
+            .main-content {
+                padding: 2rem;
+            }
+            
+            .sidebar {
+                width: 320px;
+            }
+            
+            .form-control, .form-select {
+                font-size: 1rem;
+                padding: 0.5rem 0.75rem;
+            }
+            
+            .table td, .table th {
+                padding: 0.75rem;
+            }
+        }
     </style>
     {% block extra_css %}{% endblock %}
 </head>
@@ -332,25 +374,30 @@
                     </a>
                     <ul class="dropdown-menu">
                         <li>
-                            <a class="dropdown-item {% if request.path == '/register/' %}active{% endif %}" href="{% url 'register_bag' %}">
+                            <a class="dropdown-item {% if request.path == '/register/' %}active{% endif %}" href="{% url 'register_bag' %}" style="color: #b96b07; border-left: 3px solid #b96b07;">
                                 <i class="fas fa-tshirt me-1"></i> Nowa torba (N-bag)
                             </a>
                         </li>
                         <li>
-                            <a class="dropdown-item {% if request.path == '/register-sorted/' %}active{% endif %}" href="{% url 'register_sorted_bag' %}">
+                            <a class="dropdown-item {% if request.path == '/register-sorted/' %}active{% endif %}" href="{% url 'register_sorted_bag' %}" style="color: #6bb907; border-left: 3px solid #6bb907;">
                                 <i class="fas fa-tags me-1"></i> Posortowana torba (S-bag)
                             </a>
                         </li>
                     </ul>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link {% if 'pending' in request.path %}active{% endif %}" href="{% url 'pending_bags' %}">
-                        <i class="fas fa-clock"></i> Oczekujące torby
+                    <a class="nav-link {% if 'pending' in request.path %}active{% endif %}" href="{% url 'pending_bags' %}" style="border-left: 3px solid #b96b07;">
+                        <i class="fas fa-clock" style="color: #b96b07;"></i> Oczekujące torby (N-bag)
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link {% if 'sorted-bags' in request.path and 'stats' not in request.path %}active{% endif %}" href="{% url 'sorted_bags' %}">
-                        <i class="fas fa-tags"></i> Posortowane torby
+                    <a class="nav-link {% if 'closed' in request.path %}active{% endif %}" href="{% url 'closed_bags' %}" style="border-left: 3px solid #b96b07;">
+                        <i class="fas fa-check-circle" style="color: #b96b07;"></i> Zamknięte torby (N-bag)
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link {% if 'sorted-bags' in request.path and 'stats' not in request.path %}active{% endif %}" href="{% url 'sorted_bags' %}" style="border-left: 3px solid #6bb907;">
+                        <i class="fas fa-tags" style="color: #6bb907;"></i> Posortowane torby (S-bag)
                     </a>
                 </li>
                 <li class="nav-item dropdown">

@@ -18,7 +18,7 @@ class BagForm(forms.ModelForm):
         model = Bag
         fields = ['weight', 'clothing_type', 'assigned_to']
         widgets = {
-            'weight': forms.TextInput(attrs={'class': 'form-control form-control-lg', 'inputmode': 'numeric', 'pattern': '[0-9]*', 'placeholder': 'Waga (kg)'}),
+            'weight': forms.NumberInput(attrs={'class': 'form-control form-control-lg', 'placeholder': 'Waga (kg)'}),
             'clothing_type': forms.RadioSelect(attrs={'class': 'category-radio'}),
             'assigned_to': forms.Select(attrs={'class': 'form-control form-control-lg'}),
         }
@@ -28,7 +28,6 @@ class BagForm(forms.ModelForm):
             'assigned_to': 'Przydzielone do sortowania przez',
         }
         help_texts = {
-            'weight': 'Waga torby w kilogramach (liczba całkowita)',
             'clothing_type': 'Wybierz kategorię odzieży w worku',
             'assigned_to': 'Pracownik, który będzie sortował worek',
         }
@@ -49,11 +48,11 @@ class BagForm(forms.ModelForm):
             initials = ''.join([name[0] for name in employee.name.split() if name])
             if not initials:
                 initials = '?'
-                
+
             # Create HTML with initials and name below
             employee_html = f'''
             <div style="text-align: center;">
-                <div style="width: 50px; height: 50px; margin: 0 auto; background-color: {employee.icon_color}; color: white; 
+                <div style="width: 50px; height: 50px; margin: 0 auto; background-color: {employee.icon_color}; color: white;
                      border-radius: 8px; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 1.5rem;">
                     {initials}
                 </div>
@@ -61,9 +60,9 @@ class BagForm(forms.ModelForm):
             </div>
             '''
             choices.append((employee.id, mark_safe(employee_html)))
-        
+
         self.fields['assigned_to'].choices = choices
-        
+
     def clean_weight(self):
         weight = self.cleaned_data.get('weight')
         # Allow whole numbers (integers)
@@ -83,12 +82,23 @@ class SortedBagForm(forms.ModelForm):
         widget=forms.CheckboxInput(attrs={'class': 'form-check-input'})
     )
 
+    close_bag = forms.BooleanField(
+        required=False,
+        initial=False,
+        label='Zamknij torbę',
+        help_text='Zamknij torbę, aby uniemożliwić dalsze edycje',
+        widget=forms.CheckboxInput(attrs={'class': 'form-check-input'})
+    )
+
     class Meta:
         model = SortedBag
-        fields = ['weight', 'clothing_category', 'prepared_by', 'original_bag']
+        fields = ['weight', 'clothing_category', 'prepared_by', 'original_bag', 'is_closed']
         widgets = {
             'weight': forms.TextInput(attrs={'class': 'form-control form-control-lg', 'inputmode': 'numeric', 'pattern': '[0-9]*', 'placeholder': 'Waga (kg)'}),
-            'clothing_category': forms.RadioSelect(attrs={'class': 'category-radio'}),
+            'clothing_category': forms.RadioSelect(attrs={
+                'class': 'category-radio',
+                'required': True,
+            }),
             'prepared_by': forms.Select(attrs={'class': 'form-control form-control-lg'}),
             'original_bag': forms.Select(attrs={'class': 'form-control form-control-lg'})
         }
@@ -96,35 +106,49 @@ class SortedBagForm(forms.ModelForm):
             'weight': 'Waga (kg)',
             'clothing_category': 'Kategoria posortowanej odzieży',
             'prepared_by': 'Przygotowane przez',
-            'original_bag': 'Worek źródłowy (opcjonalnie)'
+            'original_bag': 'Worek źródłowy (opcjonalnie)',
+            'is_closed': 'Zamknięta'
         }
         help_texts = {
             'weight': 'Waga torby w kilogramach (liczba całkowita)',
             'clothing_category': 'Wybierz kategorię posortowanej odzieży',
             'prepared_by': 'Pracownik, który przygotował torbę',
-            'original_bag': 'Wybierz worek źródłowy (N-bag), z którego powstała ta torba'
+            'original_bag': 'Wybierz worek źródłowy (N-bag), z którego powstała ta torba',
+            'is_closed': 'Po zamknięciu torba nie będzie mogła być edytowana'
         }
-        
+
     def __init__(self, *args, **kwargs):
         super(SortedBagForm, self).__init__(*args, **kwargs)
-        self.fields['clothing_category'].queryset = SortedClothingCategory.objects.filter(active=True)
+        # Ensure we get all active categories and make the queryset explicit
+        active_categories = SortedClothingCategory.objects.filter(active=True)
+        self.fields['clothing_category'].queryset = active_categories
+        self.fields['clothing_category'].empty_label = None  # Remove empty choice
+        self.fields['clothing_category'].required = True     # Explicitly require this field
+
+        # If there's only one category, pre-select it
+        if active_categories.count() == 1:
+            self.initial['clothing_category'] = active_categories.first().pk
+        elif 'instance' not in kwargs and active_categories.exists():
+            # For new forms, pre-select the first category if any exist
+            self.initial['clothing_category'] = active_categories.first().pk
+
         self.fields['original_bag'].queryset = Bag.objects.filter(is_sorted=True)
         self.fields['original_bag'].required = False
-        
+
         # Set up employee choices with initials for prepared_by
         employees = Employee.objects.all()
         choices = [('', 'Wybierz pracownika')]
-        
+
         for employee in employees:
             # Get initials for the icon
             initials = ''.join([name[0] for name in employee.name.split() if name])
             if not initials:
                 initials = '?'
-                
+
             # Create HTML with initials and name below
             employee_html = f'''
             <div style="text-align: center;">
-                <div style="width: 50px; height: 50px; margin: 0 auto; background-color: {employee.icon_color}; color: white; 
+                <div style="width: 50px; height: 50px; margin: 0 auto; background-color: {employee.icon_color}; color: white;
                      border-radius: 8px; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 1.5rem;">
                     {initials}
                 </div>
@@ -132,20 +156,34 @@ class SortedBagForm(forms.ModelForm):
             </div>
             '''
             choices.append((employee.id, mark_safe(employee_html)))
-        
+
         self.fields['prepared_by'].choices = choices
-        
+
     def clean_weight(self):
         weight = self.cleaned_data.get('weight')
+        # Validate weight is positive
+        if weight is None or weight <= 0:
+            raise forms.ValidationError("Waga musi być większa od zera")
         # Allow whole numbers (integers)
         return weight
+
+    def clean_clothing_category(self):
+        category = self.cleaned_data.get('clothing_category')
+        if not category:
+            raise forms.ValidationError("Wybierz kategorię odzieży")
+
+        # Verify the category is active
+        if not category.active:
+            raise forms.ValidationError("Wybrana kategoria nie jest aktywna")
+
+        return category
 
 class EmployeeForm(forms.ModelForm):
     hex_color_validator = RegexValidator(
         regex=r'^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$',
         message='Kolor musi być w formacie HEX, np. #3498db'
     )
-    
+
     icon_color = forms.CharField(
         validators=[hex_color_validator],
         widget=forms.TextInput(attrs={
@@ -153,7 +191,7 @@ class EmployeeForm(forms.ModelForm):
             'type': 'color'
         })
     )
-    
+
     class Meta:
         model = Employee
         fields = ['name', 'icon_color']
@@ -213,7 +251,7 @@ class IncomingClothingForm(forms.ModelForm):
         regex=r'^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$',
         message='Kolor musi być w formacie HEX, np. #3498db'
     )
-    
+
     color = forms.CharField(
         validators=[hex_color_validator],
         widget=forms.TextInput(attrs={
@@ -221,7 +259,7 @@ class IncomingClothingForm(forms.ModelForm):
             'type': 'color'
         })
     )
-    
+
     class Meta:
         model = IncomingClothing
         fields = ['name', 'description', 'icon', 'color', 'active']
@@ -237,7 +275,7 @@ class SortedClothingCategoryForm(forms.ModelForm):
         regex=r'^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$',
         message='Kolor musi być w formacie HEX, np. #3498db'
     )
-    
+
     color = forms.CharField(
         validators=[hex_color_validator],
         widget=forms.TextInput(attrs={
@@ -245,7 +283,7 @@ class SortedClothingCategoryForm(forms.ModelForm):
             'type': 'color'
         })
     )
-    
+
     class Meta:
         model = SortedClothingCategory
         fields = ['name', 'description', 'icon', 'color', 'active']

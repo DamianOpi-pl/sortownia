@@ -10,8 +10,8 @@
 <div class="container-fluid px-0">
     <!-- Header with Add Button -->
     <div class="d-flex justify-content-between align-items-center mb-3">
-        <h5 class="mb-0"><i class="fas fa-clock me-2"></i> Worki oczekujące</h5>
-        <a href="{% url 'register_bag' %}" class="btn btn-primary rounded-pill">
+        <h5 class="mb-0"><i class="fas fa-clock me-2" style="color: #b96b07;"></i> Worki oczekujące</h5>
+        <a href="{% url 'register_bag' %}" class="btn rounded-pill" style="background-color: #b96b07; color: white;">
             <i class="fas fa-plus me-2"></i> <span class="d-none d-md-inline">Dodaj</span> worek
         </a>
     </div>
@@ -23,7 +23,7 @@
                 <!-- Main info -->
                 <div class="bag-card-body" onclick="window.location.href='{% url 'bag_detail' bag.id %}';">
                     <!-- Bag number and weight -->
-                    <div class="d-flex justify-content-between align-items-start mb-2">
+                    <div class="d-flex justify-content-between align-items-start">
                         <div class="bag-number">
                             <i class="fas fa-barcode me-1"></i> {{ bag.bag_number }}
                         </div>
@@ -31,32 +31,31 @@
                             <i class="fas fa-weight-hanging me-1"></i> {{ bag.weight|format_weight }}
                         </div>
                     </div>
-
-                    <!-- Clothing type -->
-                    <div class="mb-2">
-                        {% if bag.clothing_type %}
-                            <div class="clothing-type" style="background-color: {{ bag.clothing_type.color }};">
-                                <i class="fas {{ bag.clothing_type.icon }} me-1"></i>
-                                <span>{{ bag.clothing_type.name }}</span>
-                            </div>
-                        {% else %}
-                            <div class="clothing-type no-type">
-                                <i class="fas fa-question-circle me-1"></i>
-                                <span>Brak kategorii</span>
-                            </div>
-                        {% endif %}
-                    </div>
-
-                    <!-- Assignment and time -->
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div class="bag-assignment {% if bag.assigned_to %}has-assignment{% else %}no-assignment{% endif %}">
+                    
+                    <!-- Employee badge -->
+                    <div class="employee-badge mt-2 mb-2">
+                        <div class="employee-circle">
                             {% if bag.assigned_to %}
-                                <i class="fas fa-user me-1"></i> {{ bag.assigned_to.name }}
+                                {{ bag.assigned_to.name|first }}
                             {% else %}
-                                <i class="fas fa-user-slash me-1"></i> Nie przydzielono
+                                ?
                             {% endif %}
                         </div>
-                        <div class="bag-time" title="{{ bag.created_at|polish_date:'long' }}, {{ bag.created_at|date:'H:i' }}">
+                        <span class="employee-name">
+                            {% if bag.assigned_to %}
+                                {{ bag.assigned_to.name }}
+                            {% else %}
+                                Nie przydzielono
+                            {% endif %}
+                        </span>
+                    </div>
+                    
+                    <!-- Date info -->
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div class="date-info">
+                            <i class="fas fa-calendar me-1"></i> {{ bag.created_at|date:"d.m.Y H:i" }}
+                        </div>
+                        <div class="time-ago">
                             <i class="fas fa-history me-1"></i> {{ bag.created_at|timesince }} temu
                         </div>
                     </div>
@@ -64,16 +63,16 @@
 
                 <!-- Action buttons -->
                 <div class="bag-card-actions">
-                    <a href="{% url 'bag_detail' bag.id %}" class="btn btn-info btn-action">
+                    <a href="{% url 'bag_detail' bag.id %}" class="btn btn-action info-button">
                         <i class="fas fa-info-circle"></i>
                     </a>
-                    <a href="{% url 'mark_sorted' bag.id %}" class="btn btn-success btn-action">
+                    <a href="{% url 'mark_sorted' bag.id %}" class="btn btn-action check-button">
                         <i class="fas fa-check"></i>
                     </a>
-                    <a href="{% url 'edit_pending_bag' bag.id %}" class="btn btn-primary btn-action">
+                    <a href="{% url 'edit_pending_bag' bag.id %}" class="btn btn-action edit-button">
                         <i class="fas fa-edit"></i>
                     </a>
-                    <button type="button" class="btn btn-secondary btn-action print-ean-btn" data-ean="{{ bag.bag_number }}">
+                    <button type="button" class="btn btn-action print-button print-ean-btn" data-ean="{{ bag.bag_number }}">
                         <i class="fas fa-print"></i>
                     </button>
                 </div>
@@ -83,12 +82,12 @@
     {% else %}
         <div class="empty-state">
             <div class="empty-state-icon">
-                <i class="fas fa-box-open"></i>
+                <i class="fas fa-exclamation-circle"></i>
             </div>
             <h5>Brak oczekujących worków</h5>
             <p class="text-muted mb-4">Wszystkie worki zostały posortowane lub nie zarejestrowano jeszcze żadnych.</p>
-            <a href="{% url 'register_bag' %}" class="btn btn-primary btn-lg rounded-pill">
-                <i class="fas fa-plus-circle me-2"></i> Zarejestruj nowy worek
+            <a href="{% url 'register_bag' %}" class="btn" style="background-color: #b96b07; color: white;">
+                <i class="fas fa-plus-circle me-2"></i> Zarejestruj nowy worek (N-bag)
             </a>
         </div>
     {% endif %}
@@ -160,18 +159,18 @@
 
     /* Bag list styling */
     .bag-list {
-        display: flex;
-        flex-direction: column;
-        gap: 12px;
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: 16px;
     }
 
     /* Bag card styling */
     .bag-card {
         background-color: white;
-        border-radius: 16px;
-        border: 2px solid #7e7e7e;
+        border-radius: 0;
+        border: 1px solid #dee2e6;
         overflow: hidden;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
         display: flex;
         flex-direction: column;
     }
@@ -186,61 +185,78 @@
 
     .bag-card-actions {
         display: flex;
-        background-color: #f8f9fa;
-        border-top: 1px solid rgba(0,0,0,0.05);
+        height: 48px;
     }
 
     .btn-action {
         flex: 1;
         border-radius: 0;
-        padding: 12px 0;
         display: flex;
         align-items: center;
         justify-content: center;
         border: none;
         margin: 0;
         font-size: 1.1rem;
+        height: 100%;
+    }
+    
+    .info-button {
+        background-color: #b96b07;
+        color: white;
+    }
+    
+    .check-button {
+        background-color: #28a745;
+        color: white;
+    }
+    
+    .edit-button {
+        background-color: #b96b07;
+        color: white;
+    }
+    
+    .print-button {
+        background-color: #6c757d;
+        color: white;
     }
 
     /* Bag elements styling */
     .bag-number {
         font-weight: 600;
-        font-size: 1.1rem;
+        font-size: 0.95rem;
     }
 
     .bag-weight {
-        background-color: #f8f9fa;
-        padding: 4px 8px;
-        border-radius: 20px;
         font-weight: 500;
-        font-size: 0.9rem;
+        font-size: 0.85rem;
         color: #212529;
     }
-
-    .clothing-type {
-        display: inline-flex;
+    
+    .employee-badge {
+        display: flex;
         align-items: center;
-        padding: 6px 12px;
-        border-radius: 20px;
+    }
+    
+    .employee-circle {
+        width: 30px;
+        height: 30px;
+        background-color: #333;
         color: white;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+        margin-right: 8px;
+    }
+    
+    .employee-name {
         font-size: 0.9rem;
         font-weight: 500;
     }
-
-    .clothing-type.no-type {
-        background-color: #6c757d;
-    }
-
-    .bag-assignment, .bag-time {
-        font-size: 0.85rem;
-        color: #6c757d;
-    }
-
-    .bag-assignment.has-assignment {
-        color: #198754;
-    }
-
-    .bag-assignment.no-assignment {
+    
+    .date-info, .time-ago {
+        font-size: 0.8rem;
         color: #6c757d;
     }
 
@@ -251,29 +267,30 @@
         align-items: center;
         justify-content: center;
         text-align: center;
-        padding: 3rem 1rem;
+        padding: 2rem 1rem;
         background-color: white;
-        border-radius: 16px;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        border: 1px solid #dee2e6;
+        margin: 2rem auto;
+        max-width: 500px;
     }
 
     .empty-state-icon {
         font-size: 3rem;
-        color: #6c757d;
-        opacity: 0.5;
-        margin-bottom: 1.5rem;
+        color: #b96b07;
+        margin-bottom: 1rem;
     }
 
     /* Instruction card styling */
     .instruction-card {
         background-color: white;
-        border-radius: 16px;
+        border: 1px solid #dee2e6;
         overflow: hidden;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
     }
 
     .instruction-header {
-        background-color: #f8f9fa;
+        background-color: #b96b07;
+        color: white;
         padding: 12px 16px;
         font-weight: 600;
         border-bottom: 1px solid rgba(0,0,0,0.05);
@@ -300,16 +317,31 @@
         }
     }
 
-    /* Tablet and desktop adjustments */
-    @media (min-width: 768px) {
-        .bag-list {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-            gap: 16px;
-        }
+    /* Add ripple effect for clicks */
+    .bag-card-body::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        cursor: pointer;
+    }
+    
+    /* Ripple effect */
+    .ripple {
+        position: absolute;
+        background-color: rgba(0, 0, 0, 0.1);
+        border-radius: 50%;
+        transform: scale(0);
+        animation: ripple 0.6s linear;
+        pointer-events: none;
+    }
 
-        .bag-card {
-            height: 100%;
+    @keyframes ripple {
+        to {
+            transform: scale(2);
+            opacity: 0;
         }
     }
 </style>

@@ -1,0 +1,492 @@
+{% extends 'sortapp/base.html' %}
+{% load sorting_extras %}
+{% load i18n %}
+
+{% block title %}{{ title }} - Sortownia Odzieży{% endblock %}
+
+{% block header %}{{ heading }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Filter section styling */
+    .filter-section {
+        background-color: rgba({{ accent_rgb }}, 0.05);
+        border-radius: 10px;
+        padding: 20px;
+        margin-bottom: 20px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        border: 1px solid rgba({{ accent_rgb }}, 0.1);
+    }
+    
+    /* Bag list styling */
+    .bag-list {
+        display: grid;
+        grid-template-columns: repeat({{ cards_per_row }}, 1fr);
+        gap: 16px;
+        margin-top: 20px;
+    }
+
+    /* Bag card styling */
+    .bag-card {
+        background-color: white;
+        border-radius: 0;
+        border: 1px solid #dee2e6;
+        overflow: hidden;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        display: flex;
+        flex-direction: column;
+    }
+
+    .bag-card-body {
+        padding: 16px;
+        position: relative;
+        overflow: hidden;
+        cursor: pointer;
+        flex-grow: 1;
+    }
+
+    .bag-card-actions {
+        display: flex;
+        height: 48px;
+    }
+
+    .btn-action {
+        flex: 1;
+        border-radius: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border: none;
+        margin: 0;
+        font-size: 1.1rem;
+        height: 100%;
+    }
+    
+    .info-button {
+        background-color: #{{ accent_color }};
+        color: white;
+    }
+    
+    .check-button {
+        background-color: #28a745;
+        color: white;
+    }
+    
+    .edit-button {
+        background-color: #{{ accent_color }};
+        color: white;
+    }
+    
+    .print-button {
+        background-color: #6c757d;
+        color: white;
+    }
+
+    /* Bag elements styling */
+    .bag-number {
+        font-weight: 600;
+        font-size: 0.95rem;
+    }
+
+    .bag-weight {
+        font-weight: 500;
+        font-size: 0.85rem;
+        color: #212529;
+    }
+    
+    .category-badge {
+        display: inline-flex;
+        align-items: center;
+        padding: 6px 12px;
+        border-radius: 20px;
+        color: white;
+        font-size: 0.9rem;
+        font-weight: 500;
+        margin-top: 10px;
+        margin-bottom: 10px;
+    }
+    
+    .employee-badge {
+        display: flex;
+        align-items: center;
+        margin-bottom: 10px;
+    }
+    
+    .employee-circle {
+        width: 30px;
+        height: 30px;
+        background-color: #333;
+        color: white;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+        margin-right: 8px;
+    }
+    
+    .employee-name {
+        font-size: 0.9rem;
+        font-weight: 500;
+    }
+    
+    .date-info, .time-ago, .sorting-duration {
+        font-size: 0.8rem;
+        color: #6c757d;
+    }
+
+    /* Empty state styling */
+    .empty-state {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        padding: 2rem 1rem;
+        background-color: white;
+        border: 1px solid #dee2e6;
+        margin: 2rem auto;
+        max-width: 500px;
+    }
+
+    .empty-state-icon {
+        font-size: 3rem;
+        color: #{{ accent_color }};
+        margin-bottom: 1rem;
+    }
+    
+    /* Pagination styling */
+    .pagination-container {
+        display: flex;
+        justify-content: center;
+        margin-top: 30px;
+    }
+    
+    .pagination {
+        display: inline-flex;
+        background-color: white;
+    }
+    
+    .page-item .page-link {
+        border: none;
+        width: 40px;
+        height: 40px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #495057;
+        background-color: #f8f9fa;
+        margin: 0 2px;
+    }
+    
+    .page-item.active .page-link {
+        background-color: #007bff;
+        color: white;
+    }
+    
+    .page-item.disabled .page-link {
+        color: #6c757d;
+        opacity: 0.5;
+        background-color: #f8f9fa;
+    }
+
+    /* Ripple effect */
+    .ripple {
+        position: absolute;
+        background-color: rgba(0, 0, 0, 0.1);
+        border-radius: 50%;
+        transform: scale(0);
+        animation: ripple 0.6s linear;
+        pointer-events: none;
+    }
+
+    @keyframes ripple {
+        to {
+            transform: scale(2);
+            opacity: 0;
+        }
+    }
+    
+    /* Add ripple effect for clicks */
+    .bag-card-body::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        cursor: pointer;
+    }
+    
+    /* Instruction card styling */
+    .instruction-card {
+        background-color: white;
+        border: 1px solid #dee2e6;
+        overflow: hidden;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        margin-top: 20px;
+    }
+
+    .instruction-header {
+        background-color: #{{ accent_color }};
+        color: white;
+        padding: 12px 16px;
+        font-weight: 600;
+    }
+
+    .instruction-body {
+        padding: 16px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-0">
+    <!-- Header with buttons -->
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h5 class="mb-0"><i class="fas {{ icon_class }} me-2" style="color: #{{ accent_color }};"></i> {{ heading }}</h5>
+        <div class="d-flex">
+            {% if show_filter_button %}
+            <button class="btn me-2" style="background-color: #{{ accent_color }}; color: white;" type="button" data-bs-toggle="collapse" data-bs-target="#filtersCollapse">
+                <i class="fas fa-filter me-2"></i> Filtry
+            </button>
+            {% endif %}
+            
+            {% if add_url %}
+            <a href="{% url add_url %}" class="btn me-2" style="background-color: #{{ accent_color }}; color: white;">
+                <i class="fas fa-plus-circle me-2"></i> Dodaj
+            </a>
+            {% endif %}
+            
+            <a href="{% url 'home' %}" class="btn btn-outline-secondary">
+                <i class="fas fa-home me-2"></i> Strona główna
+            </a>
+        </div>
+    </div>
+
+    <!-- Filters -->
+    {% if show_filter_button %}
+    <div class="collapse mb-4" id="filtersCollapse">
+        <div class="filter-section">
+            <form method="get" action="{% url current_url %}" class="row g-3">
+                {% for filter in filters %}
+                <div class="col-md-{{ filter.col_size|default:'4' }}">
+                    <label for="{{ filter.name }}" class="form-label">{{ filter.label }}</label>
+                    {% if filter.type == 'select' %}
+                    <select class="form-select" id="{{ filter.name }}" name="{{ filter.name }}">
+                        {% for option in filter.options %}
+                            <option value="{{ option.value }}" {% if option.selected %}selected{% endif %}>{{ option.label }}</option>
+                        {% endfor %}
+                    </select>
+                    {% elif filter.type == 'date' %}
+                    <input type="date" class="form-control" id="{{ filter.name }}" name="{{ filter.name }}" value="{{ filter.value|default:'' }}">
+                    {% endif %}
+                </div>
+                {% endfor %}
+                
+                <div class="col-12 d-flex justify-content-end">
+                    <button type="submit" class="btn me-2" style="background-color: #{{ accent_color }}; color: white;">
+                        <i class="fas fa-search me-2"></i> Zastosuj filtry
+                    </button>
+                    <a href="{% url current_url %}" class="btn btn-outline-secondary">Wyczyść filtry</a>
+                </div>
+            </form>
+        </div>
+    </div>
+    {% endif %}
+
+    {% if bags %}
+        <div class="bag-list">
+            {% for bag in bags %}
+            <div class="bag-card" data-bag-id="{{ bag.id }}">
+                <!-- Main info -->
+                <div class="bag-card-body" onclick="window.location.href='{{ bag.detail_url }}';">
+                    <!-- Bag number and weight -->
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div class="bag-number">
+                            <i class="fas fa-barcode me-1"></i> {{ bag.bag_number }}
+                        </div>
+                        <div class="bag-weight">
+                            <i class="fas fa-weight-hanging me-1"></i> {{ bag.weight|format_weight }}
+                        </div>
+                    </div>
+                    
+                    <!-- Category (if available) -->
+                    {% if bag.show_category and bag.category %}
+                    <div class="text-center">
+                        <span class="category-badge" style="background-color: {{ bag.category.color }};">
+                            <i class="fas {{ bag.category.icon }} me-1"></i>
+                            <span>{{ bag.category.name }}</span>
+                        </span>
+                    </div>
+                    {% endif %}
+                    
+                    <!-- Employee badge -->
+                    <div class="employee-badge mt-2 mb-2">
+                        <div class="employee-circle" style="background-color: {{ bag.employee_color|default:'#333' }}">
+                            {% if bag.employee_name %}
+                                {{ bag.employee_name|first }}
+                            {% else %}
+                                ?
+                            {% endif %}
+                        </div>
+                        <span class="employee-name">
+                            {% if bag.employee_name %}
+                                {{ bag.employee_name }}
+                            {% else %}
+                                {{ bag.no_employee_text|default:'Nie przypisano' }}
+                            {% endif %}
+                        </span>
+                    </div>
+                    
+                    <!-- Date information -->
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div class="date-info">
+                            <i class="fas fa-calendar me-1"></i> {{ bag.date_display }}
+                        </div>
+                        <div class="time-info">
+                            {% if bag.time_display %}
+                                <i class="{{ bag.time_icon|default:'fas fa-history' }} me-1"></i> {{ bag.time_display }}
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <!-- Status (if available) -->
+                    {% if bag.status_display %}
+                    <div class="text-end mt-2">
+                        <span class="badge" style="background-color: {{ bag.status_color }};">
+                            <i class="{{ bag.status_icon }} me-1"></i> {{ bag.status_display }}
+                        </span>
+                    </div>
+                    {% endif %}
+                </div>
+
+                <!-- Action buttons -->
+                <div class="bag-card-actions">
+                    {% for action in bag.actions %}
+                    {% if action.type == 'link' %}
+                    <a href="{{ action.url }}" class="btn btn-action {{ action.class }}" {% if action.data_attr %}{{ action.data_attr }}="{{action.data_value}}"{% endif %}>
+                        <i class="{{ action.icon }}"></i>
+                    </a>
+                    {% elif action.type == 'button' %}
+                    <button type="button" class="btn btn-action {{ action.class }}" {% if action.data_attr %}{{ action.data_attr }}="{{action.data_value}}"{% endif %}>
+                        <i class="{{ action.icon }}"></i>
+                    </button>
+                    {% endif %}
+                    {% endfor %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        
+        <!-- Pagination -->
+        {% if bags_page.has_other_pages %}
+        <div class="pagination-container text-center mt-4 mb-3">
+            <nav aria-label="Nawigacja po stronach">
+                <ul class="pagination justify-content-center">
+                    {% if bags_page.has_previous %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ bags_page.previous_page_number }}{{ pagination_query_params }}" aria-label="Poprzednia">
+                                <span aria-hidden="true">&laquo;</span>
+                            </a>
+                        </li>
+                    {% else %}
+                        <li class="page-item disabled">
+                            <span class="page-link">&laquo;</span>
+                        </li>
+                    {% endif %}
+
+                    {% for i in bags_page.paginator.page_range %}
+                        {% if bags_page.number == i %}
+                            <li class="page-item active"><span class="page-link">{{ i }}</span></li>
+                        {% elif i > bags_page.number|add:"-3" and i < bags_page.number|add:"3" %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ i }}{{ pagination_query_params }}">{{ i }}</a>
+                            </li>
+                        {% endif %}
+                    {% endfor %}
+
+                    {% if bags_page.has_next %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ bags_page.next_page_number }}{{ pagination_query_params }}" aria-label="Następna">
+                                <span aria-hidden="true">&raquo;</span>
+                            </a>
+                        </li>
+                    {% else %}
+                        <li class="page-item disabled">
+                            <span class="page-link">&raquo;</span>
+                        </li>
+                    {% endif %}
+                </ul>
+            </nav>
+        </div>
+        {% endif %}
+    {% else %}
+        <div class="empty-state">
+            <div class="empty-state-icon">
+                <i class="fas fa-exclamation-circle"></i>
+            </div>
+            <h5>{{ empty_title }}</h5>
+            <p class="text-muted mb-4">{{ empty_message }}</p>
+            <div class="d-flex justify-content-center">
+                <a href="{{ empty_button_url }}" class="btn" style="background-color: #{{ accent_color }}; color: white;">
+                    <i class="{{ empty_button_icon }} me-2"></i> {{ empty_button_text }}
+                </a>
+            </div>
+        </div>
+    {% endif %}
+    
+    <!-- Instruction card (if available) -->
+    {% if show_instructions %}
+    <div class="instruction-card mt-4">
+        <div class="instruction-header">
+            <i class="fas fa-info-circle me-2"></i> {{ instruction_title|default:"Instrukcje" }}
+        </div>
+        <div class="instruction-body">
+            {% autoescape off %}
+            {{ instruction_content }}
+            {% endautoescape %}
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Print EAN label functionality
+        const printEanBtns = document.querySelectorAll('.print-ean-btn');
+        printEanBtns.forEach(btn => {
+            btn.addEventListener('click', function(e) {
+                e.stopPropagation();
+                const ean = this.getAttribute('data-ean');
+                alert(`Drukowanie etykiety z kodem EAN: ${ean}\nTrwa wysyłanie do drukarki...`);
+            });
+        });
+
+        // Add ripple effect to cards
+        const bagCards = document.querySelectorAll('.bag-card-body');
+        bagCards.forEach(card => {
+            card.addEventListener('click', function(e) {
+                const ripple = document.createElement('div');
+                ripple.className = 'ripple';
+                this.appendChild(ripple);
+
+                const rect = this.getBoundingClientRect();
+                const size = Math.max(rect.width, rect.height);
+                ripple.style.width = ripple.style.height = `${size}px`;
+
+                const x = e.clientX - rect.left - size/2;
+                const y = e.clientY - rect.top - size/2;
+                ripple.style.left = `${x}px`;
+                ripple.style.top = `${y}px`;
+
+                setTimeout(() => {
+                    ripple.remove();
+                }, 600);
+            });
+        });
+    });
+</script>
+{% endblock %}

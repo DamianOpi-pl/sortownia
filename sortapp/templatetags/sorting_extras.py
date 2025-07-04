@@ -42,6 +42,14 @@ def mul(value, arg):
         return 0
 
 @register.filter
+def sub(value, arg):
+    """Subtracts the argument from the value"""
+    try:
+        return float(value) - float(arg)
+    except ValueError:
+        return 0
+
+@register.filter
 def percentage(value, total):
     """Returns the value as a percentage of the total"""
     try:
@@ -169,3 +177,36 @@ def format_time(seconds):
             return f"{minutes}:{secs:02d}"
     except (ValueError, TypeError):
         return str(seconds)
+
+@register.filter
+def timedelta(start_date, end_date):
+    """
+    Calculate and format the time difference between two dates in a human-readable format.
+    Usage: {{ start_date|timedelta:end_date }}
+    Returns: "X godz Y min" or "X min" format
+    """
+    if not start_date or not end_date:
+        return "brak danych"
+    
+    try:
+        # Ensure we're working with datetime objects
+        if not isinstance(start_date, datetime):
+            start_date = datetime.strptime(str(start_date), "%Y-%m-%d %H:%M:%S")
+        if not isinstance(end_date, datetime):
+            end_date = datetime.strptime(str(end_date), "%Y-%m-%d %H:%M:%S")
+        
+        # Calculate the time difference
+        delta = end_date - start_date
+        
+        # Convert to hours and minutes
+        total_seconds = delta.total_seconds()
+        hours = int(total_seconds // 3600)
+        minutes = int((total_seconds % 3600) // 60)
+        
+        # Format the output
+        if hours > 0:
+            return f"{hours} godz {minutes} min"
+        else:
+            return f"{minutes} min"
+    except (ValueError, TypeError):
+        return "brak danych"

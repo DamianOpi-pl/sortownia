@@ -411,9 +411,15 @@
         </div>
     </div>
 
-    <form method="post" id="bagWizardForm">
+    <form method="post" id="bagWizardForm" action="{% url 'register_sorted_bag' %}">
         {% csrf_token %}
-        <input type="hidden" name="{{ form.print_label.name }}" id="{{ form.print_label.id_for_label }}" {% if form.print_label.value %}checked{% endif %}>
+        {{ form.non_field_errors }}
+        <input type="hidden" name="{{ form.print_label.name }}" id="{{ form.print_label.id_for_label }}" value="">
+        <input type="hidden" name="{{ form.close_bag.name }}" id="{{ form.close_bag.id_for_label }}" value="">
+        <!-- Include any hidden fields that might be required but not visible -->
+        {% for hidden in form.hidden_fields %}
+            {{ hidden }}
+        {% endfor %}
 
         <!-- Debugging information (hidden) -->
         <div class="d-none">
@@ -428,12 +434,13 @@
                 </h2>
                 <div class="category-grid">
                     {% for category in sorted_categories %}
-                    <div class="category-card" style="background-color: {{ category.color }};" onclick="document.getElementById('id_clothing_category_{{ category.id }}').click();">
+                    <div class="category-card" style="background-color: {{ category.color }};" data-category-id="{{ category.id }}">
                         <input type="radio" name="{{ form.clothing_category.name }}"
                                value="{{ category.id }}"
                                id="id_clothing_category_{{ category.id }}"
                                class="category-radio"
-                               {% if form.clothing_category.value == category.id %}checked{% endif %}>
+                               required
+                               {% if form.clothing_category.value|stringformat:'s' == category.id|stringformat:'s' or forloop.first and not form.clothing_category.value %}checked{% endif %}>
                         <div class="card-body" style="padding: 15px; width: 100%; height: 100%;">
                             <i class="fas {{ category.icon }}"></i>
                             <div class="category-name">{{ category.name }}</div>
@@ -586,16 +593,26 @@
                     </div>
                 </div>
 
+                <div class="form-check mb-3">
+                    <input class="form-check-input" type="checkbox" name="close_bag" id="{{ form.close_bag.id_for_label }}">
+                    <label class="form-check-label" for="{{ form.close_bag.id_for_label }}">
+                        Zamknij torbę po zapisaniu (uniemożliwi to dalsze edycje)
+                    </label>
+                </div>
+
                 <div class="wizard-buttons">
                     <button type="button" class="btn btn-outline-secondary btn-prev btn-tablet">
                         <i class="fas fa-arrow-left me-1"></i> Wstecz
                     </button>
                     <div class="d-flex">
-                        <button type="submit" class="btn btn-primary btn-tablet me-2" name="just_save">
+                        <button type="submit" class="btn btn-primary btn-tablet me-2" name="just_save" id="submitFormBtn">
                             <i class="fas fa-save me-2"></i> Zapisz worek
                         </button>
-                        <button type="submit" class="btn btn-success btn-tablet" name="save_and_print">
+                        <button type="submit" class="btn btn-success btn-tablet me-2" name="save_and_print" id="submitFormPrintBtn" onclick="document.getElementById('{{ form.print_label.id_for_label }}').value='on';">
                             <i class="fas fa-print me-2"></i> Zapisz i drukuj
+                        </button>
+                        <button type="submit" class="btn btn-danger btn-tablet" name="save_and_close" id="submitFormCloseBtn" onclick="document.getElementById('{{ form.close_bag.id_for_label }}').value='on';">
+                            <i class="fas fa-lock me-2"></i> Zapisz i zamknij
                         </button>
                     </div>
                 </div>
@@ -611,8 +628,10 @@
     document.addEventListener('DOMContentLoaded', function() {
         // Form elements
         const printLabelCheckbox = document.getElementById('{{ form.print_label.id_for_label }}');
+        const closeBagCheckbox = document.getElementById('{{ form.close_bag.id_for_label }}');
         const saveAndPrintBtn = document.querySelector('button[name="save_and_print"]');
         const justSaveBtn = document.querySelector('button[name="just_save"]');
+        const saveAndCloseBtn = document.querySelector('button[name="save_and_close"]');
         const weightInput = document.getElementById('{{ form.weight.id_for_label }}');
         const employeeSelect = document.getElementById('{{ form.prepared_by.id_for_label }}');
 
@@ -682,6 +701,11 @@
         justSaveBtn.addEventListener('click', function(e) {
             printLabelCheckbox.checked = false;
         });
+        
+        // If the save and close button is clicked, ensure the close checkbox is checked
+        saveAndCloseBtn.addEventListener('click', function(e) {
+            closeBagCheckbox.checked = true;
+        });
 
         // Function to update the step indicator
         function updateStepIndicator(step) {
@@ -730,23 +754,38 @@
                 return;
             }
 
-            // Explicitly check the radio input
-            radio.checked = true;
+            debugLog('Setting radio checked state to true');
+            
+            try {
+                // Explicitly check the radio input
+                radio.checked = true;
+                
+                // Remove selected class from all cards
+                categoryCards.forEach(c => c.classList.remove('selected'));
+                
+                // Add selected class to clicked card
+                card.classList.add('selected');
+                
+                // Store the selection in local storage
+                localStorage.setItem('selectedCategoryId', radio.value);
+                debugLog('Stored category ID in localStorage: ' + radio.value);
+            } catch (e) {
+                debugLog('Error selecting category: ' + e.message);
+            }
 
-            // Remove selected class from all cards
-            categoryCards.forEach(c => c.classList.remove('selected'));
-
-            // Add selected class to clicked card
-            card.classList.add('selected');
-
-            // Check the radio button
-            radio.checked = true;
             // Dispatch change event to ensure browser registers the change
-            radio.dispatchEvent(new Event('change', { bubbles: true }));
-            debugLog('Radio checked: ' + radio.value);
+            try {
+                radio.dispatchEvent(new Event('change', { bubbles: true }));
+                debugLog('Radio checked and event dispatched: ' + radio.value);
+            } catch (e) {
+                debugLog('Error dispatching event: ' + e.message);
+            }
 
             // Enable the next button
-            step1Next.disabled = false;
+            if (step1Next) {
+                step1Next.disabled = false;
+                debugLog('Next button enabled');
+            }
 
             // Add some visual feedback
             card.style.transform = 'scale(1.05)';
@@ -755,7 +794,7 @@
             }, 200);
         }
 
-        // Add click event listeners to category cards
+        // Add click event listeners to category cards with improved handling
         categoryCards.forEach((card, index) => {
             const radio = card.querySelector('input[type="radio"]');
             const categoryName = card.querySelector('.category-name')?.textContent || 'Unknown';
@@ -771,19 +810,28 @@
 
             // Add click event listener
             card.addEventListener('click', function(e) {
+                debugLog(`Card clicked: ${categoryName}`);
                 const radio = card.querySelector('input[type="radio"]');
                 if (radio) {
-                    radio.click();
+                    // Directly set checked rather than clicking
+                    radio.checked = true;
+                    debugLog(`Radio checked: ${radio.value}`);
+                    // Manually update the selected state
+                    categoryCards.forEach(c => c.classList.remove('selected'));
+                    card.classList.add('selected');
+                    // Enable next button if in wizard
+                    if (step1Next) step1Next.disabled = false;
                 }
-                e.stopPropagation();
                 handleCategoryCardClick(card);
             });
 
-            // Add touch event listener for mobile
+            // Add touch event listener for mobile with improved handling
             card.addEventListener('touchend', function(e) {
+                debugLog(`Card touched: ${categoryName}`);
                 const radio = card.querySelector('input[type="radio"]');
                 if (radio) {
-                    radio.click();
+                    // Directly set checked rather than clicking
+                    radio.checked = true;
                 }
                 e.preventDefault();
                 handleCategoryCardClick(card);
@@ -792,6 +840,7 @@
             // Make the radio input also trigger the card selection
             if (radio) {
                 radio.addEventListener('change', function() {
+                    debugLog(`Radio changed for: ${categoryName}`);
                     handleCategoryCardClick(card);
                 });
             }
@@ -1017,6 +1066,27 @@
         // Step navigation function
         // Function to go to a specific step
         function goToStep(step) {
+            debugLog(`Going to step ${step}`);
+            
+            // Validate current step before proceeding
+            if (currentStep === 1 && step > currentStep) {
+                // Check if a category is selected before leaving step 1
+                const selectedCategory = document.querySelector('input[name="{{ form.clothing_category.name }}"]:checked');
+                if (!selectedCategory) {
+                    debugLog('No category selected, cannot proceed');
+                    showError("Proszę wybrać kategorię posortowanej odzieży!");
+                    return false;
+                }
+            } else if (currentStep === 2 && step > currentStep) {
+                // Check if an employee is selected before leaving step 2
+                const selectedEmployee = document.querySelector('input[name="{{ form.prepared_by.name }}"]:checked');
+                if (!selectedEmployee) {
+                    debugLog('No employee selected, cannot proceed');
+                    showError("Proszę wybrać pracownika!");
+                    return false;
+                }
+            }
+            
             // Hide all steps
             wizardSteps.forEach(stepContent => {
                 stepContent.classList.remove('active');
@@ -1026,6 +1096,7 @@
             const targetStep = document.querySelector(`.step-${step}-content`);
             if (targetStep) {
                 targetStep.classList.add('active');
+                debugLog(`Activated step ${step}`);
 
                 // Auto-focus the weight input when going to step 3
                 if (step === 3 && weightInput) {
@@ -1170,6 +1241,78 @@
                 goToStep(3);
             }
         }
+    });
+    
+    // After a short delay, verify that any initially checked categories are properly selected
+    setTimeout(() => {
+        // Check if we have a stored category selection
+        const storedCategoryId = localStorage.getItem('selectedCategoryId');
+        let foundSelected = false;
+        
+        categoryCards.forEach(card => {
+            const radio = card.querySelector('input[type="radio"]');
+            const categoryName = card.querySelector('.category-name')?.textContent || 'Unknown';
+            
+            // If there's a stored selection and this card matches, select it
+            if (storedCategoryId && radio && radio.value === storedCategoryId) {
+                debugLog(`Selecting stored category: ${categoryName}`);
+                radio.checked = true;
+                card.classList.add('selected');
+                foundSelected = true;
+                if (step1Next) {
+                    step1Next.disabled = false;
+                }
+            }
+            // Otherwise handle any pre-selected radio
+            else if (radio && radio.checked && !card.classList.contains('selected')) {
+                debugLog(`Fixing initial selection for: ${categoryName}`);
+                card.classList.add('selected');
+                foundSelected = true;
+                if (step1Next) {
+                    step1Next.disabled = false;
+                }
+            }
+        });
+        
+        // If no selection found and we have categories, select the first one
+        if (!foundSelected && categoryCards.length > 0) {
+            const firstCard = categoryCards[0];
+            const firstRadio = firstCard.querySelector('input[type="radio"]');
+            if (firstRadio) {
+                debugLog('Auto-selecting first category');
+                firstRadio.checked = true;
+                firstCard.classList.add('selected');
+                if (step1Next) {
+                    step1Next.disabled = false;
+                }
+            }
+        }
+    }, 200);
+    
+    // Add form submission event handler to validate before submit
+    document.getElementById('bagWizardForm').addEventListener('submit', function(e) {
+        // Check if a category is selected
+        const selectedCategory = document.querySelector('input[name="{{ form.clothing_category.name }}"]:checked');
+        if (!selectedCategory) {
+            e.preventDefault();
+            debugLog('Form submission prevented: No category selected');
+            showError("Proszę wybrać kategorię posortowanej odzieży!");
+            goToStep(1);
+            return false;
+        }
+        
+        // Check if weight is valid
+        const weightValue = parseFloat(weightInput.value);
+        if (!weightInput.value || isNaN(weightValue) || weightValue <= 0) {
+            e.preventDefault();
+            debugLog('Form submission prevented: Invalid weight');
+            showError("Proszę podać poprawną wagę (większą od zera)!");
+            goToStep(3);
+            return false;
+        }
+        
+        debugLog('Form submission validated successfully');
+        return true;
     });
 </script>
 {% endblock %}

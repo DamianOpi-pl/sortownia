@@ -66,6 +66,21 @@
     box-shadow: 0 0 0 0.2rem rgba(52, 152, 219, 0.25);
 }
 
+/* Improved input sizing and touch targets for mobile and tablets */
+input, select, textarea, button, .btn {
+    font-size: 16px; /* Prevents iOS zoom on focus */
+}
+
+@media (min-width: 769px) and (max-width: 1024px) {
+    input, select, textarea {
+        font-size: 16px;
+    }
+    
+    .btn {
+        padding: 8px 16px;
+    }
+}
+
 /* Custom alert styling */
 .alert {
     border-left: 4px solid;
@@ -92,6 +107,22 @@
     transition: width 1s ease-in-out;
 }
 
+/* Improved card layouts for better tablet experience */
+@media (min-width: 769px) and (max-width: 1024px) {
+    .card {
+        margin-bottom: 20px;
+    }
+    
+    .wizard-step {
+        padding: 15px;
+    }
+    
+    .form-section {
+        padding: 20px;
+        margin-bottom: 25px;
+    }
+}
+
 /* Responsive adjustments */
 @media (max-width: 768px) {
     .page-header {
@@ -104,6 +135,86 @@
     
     .table th, .table td {
         padding: 8px;
+    }
+}
+
+/* Tablet-specific adjustments */
+@media (min-width: 769px) and (max-width: 1024px) {
+    .page-header {
+        padding: 1.5rem 0;
+    }
+    
+    .page-header h1 {
+        font-size: 2rem;
+    }
+    
+    /* Form improvements for tablets */
+    .form-control-lg, .form-select-lg {
+        height: 54px;
+        font-size: 1.1rem;
+    }
+    
+    /* Weight input section adjustments */
+    .weight-buttons {
+        justify-content: center;
+        gap: 12px;
+    }
+    
+    .weight-adjust {
+        min-width: 55px;
+        height: 45px;
+        font-size: 1.1rem;
+        padding: 0.5rem;
+    }
+    
+    /* Better wizard steps for tablets */
+    .steps-indicator {
+        max-width: 90%;
+        margin: 0 auto 2rem auto;
+    }
+    
+    .step-circle {
+        width: 40px;
+        height: 40px;
+        font-size: 1.2rem;
+    }
+    
+    .step-label {
+        font-size: 0.9rem;
+    }
+    
+    /* Button adjustments for tablets */
+    .btn-next, .btn-prev {
+        min-width: 140px;
+        font-size: 1.1rem;
+        padding: 10px 20px;
+    }
+    
+    /* Category and employee card adjustments */
+    .category-grid, .employee-grid {
+        grid-template-columns: repeat(3, 1fr);
+        gap: 15px;
+    }
+    
+    .category-card, .employee-card {
+        padding: 15px;
+    }
+    
+    .category-card .card-body, .employee-card .card-body {
+        padding: 1rem;
+    }
+}
+
+/* Improved container spacing for better responsiveness */
+.container, .container-fluid {
+    padding-left: 20px;
+    padding-right: 20px;
+}
+
+@media (min-width: 769px) and (max-width: 1024px) {
+    .container, .container-fluid {
+        padding-left: 30px;
+        padding-right: 30px;
     }
 }
 

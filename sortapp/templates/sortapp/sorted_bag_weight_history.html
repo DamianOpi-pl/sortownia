@@ -1,0 +1,303 @@
+{% extends 'sortapp/base.html' %}
+{% load sorting_extras %}
+
+{% block title %}Historia wagi S-bag #{{ bag.bag_number }} - Sortownia Odzieży{% endblock %}
+
+{% block header %}Historia wagi torby #{{ bag.bag_number }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .bag-details {
+        background-color: #f8f9fa;
+        border-radius: 10px;
+        padding: 15px;
+        margin-bottom: 20px;
+    }
+
+    .bag-details-title {
+        font-weight: 600;
+        margin-bottom: 15px;
+    }
+
+    .detail-row {
+        display: flex;
+        margin-bottom: 10px;
+        align-items: center;
+    }
+
+    .detail-label {
+        flex: 0 0 150px;
+        font-weight: 500;
+        color: #6c757d;
+    }
+
+    .detail-value {
+        flex: 1;
+    }
+
+    .category-badge {
+        padding: 6px 10px;
+        border-radius: 20px;
+        color: white;
+        font-weight: 500;
+        display: inline-block;
+        min-width: 100px;
+        text-align: center;
+    }
+
+    .history-card {
+        border-radius: 10px;
+        overflow: hidden;
+        margin-bottom: 20px;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+
+    .history-header {
+        background-color: #f8f9fa;
+        padding: 15px;
+        border-bottom: 1px solid #dee2e6;
+    }
+
+    .history-body {
+        padding: 0;
+    }
+
+    .weight-history-item {
+        padding: 15px;
+        border-left: 4px solid #3498db;
+        margin-bottom: 1px;
+        background-color: white;
+        transition: all 0.2s ease;
+    }
+
+    .weight-history-item:hover {
+        background-color: #f8f9fa;
+    }
+
+    .weight-history-item.final {
+        border-left-color: #e74c3c;
+    }
+
+    .weight-change {
+        font-weight: 600;
+        font-size: 1.1rem;
+    }
+
+    .weight-timestamp {
+        color: #6c757d;
+        margin-top: 5px;
+    }
+
+    .weight-arrow {
+        color: #6c757d;
+        margin: 0 8px;
+    }
+
+    .weight-diff {
+        margin-left: 10px;
+        padding: 3px 8px;
+        border-radius: 15px;
+        font-size: 0.9rem;
+    }
+
+    .weight-diff.positive {
+        background-color: #d4edda;
+        color: #155724;
+    }
+
+    .weight-diff.negative {
+        background-color: #f8d7da;
+        color: #721c24;
+    }
+
+    .weight-diff.neutral {
+        background-color: #e2e3e5;
+        color: #383d41;
+    }
+
+    .timeline-connector {
+        position: relative;
+    }
+
+    .timeline-connector::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        left: 2px;
+        width: 2px;
+        background-color: #dee2e6;
+        z-index: 1;
+    }
+
+    .timeline-dot {
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        background-color: #3498db;
+        position: relative;
+        z-index: 2;
+        margin-right: 15px;
+    }
+
+    .timeline-dot.final {
+        background-color: #e74c3c;
+    }
+
+    .no-history {
+        padding: 30px;
+        text-align: center;
+        background-color: white;
+        border-radius: 10px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <a href="{% url 'sorted_bags' %}" class="btn btn-outline-secondary">
+                    <i class="fas fa-arrow-left me-2"></i> Powrót do listy
+                </a>
+                {% if not bag.is_closed %}
+                <a href="{% url 'update_sorted_bag' bag.id %}" class="btn btn-primary">
+                    <i class="fas fa-edit me-2"></i> Edytuj torbę
+                </a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <div class="bag-details">
+                <h5 class="bag-details-title"><i class="fas fa-info-circle me-2"></i> Szczegóły torby</h5>
+                <div class="detail-row">
+                    <div class="detail-label">Numer torby:</div>
+                    <div class="detail-value"><strong>{{ bag.bag_number }}</strong></div>
+                </div>
+                <div class="detail-row">
+                    <div class="detail-label">Kategoria:</div>
+                    <div class="detail-value">
+                        <span class="category-badge" style="background-color: {{ bag.clothing_category.color }}">
+                            <i class="fas {{ bag.clothing_category.icon }} me-2"></i> {{ bag.clothing_category.name }}
+                        </span>
+                    </div>
+                </div>
+                <div class="detail-row">
+                    <div class="detail-label">Aktualna waga:</div>
+                    <div class="detail-value"><strong>{{ bag.weight|format_weight }}</strong></div>
+                </div>
+                <div class="detail-row">
+                    <div class="detail-label">Data utworzenia:</div>
+                    <div class="detail-value">{{ bag.created_at|date:"d.m.Y H:i" }}</div>
+                </div>
+                <div class="detail-row">
+                    <div class="detail-label">Status:</div>
+                    <div class="detail-value">
+                        {% if bag.is_closed %}
+                            <span class="badge bg-secondary">
+                                <i class="fas fa-lock me-1"></i> Zamknięta
+                                {% if bag.closed_at %}
+                                    <small>({{ bag.closed_at|date:"d.m.Y H:i" }})</small>
+                                {% endif %}
+                            </span>
+                        {% else %}
+                            <span class="badge bg-success">
+                                <i class="fas fa-unlock me-1"></i> Otwarta
+                            </span>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="detail-row">
+                    <div class="detail-label">Przygotowane przez:</div>
+                    <div class="detail-value">
+                        {% if bag.prepared_by %}
+                            <span class="badge bg-light text-dark">
+                                <i class="fas fa-user me-1"></i> {{ bag.prepared_by.name }}
+                            </span>
+                        {% else %}
+                            <span class="text-muted">Nie przypisano</span>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-12">
+            <div class="history-card">
+                <div class="history-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-history me-2"></i> Historia zmian wagi
+                    </h5>
+                </div>
+                <div class="history-body">
+                    {% if weight_history %}
+                        <div class="timeline-connector">
+                            {% for history in weight_history %}
+                                <div class="weight-history-item {% if history.is_final %}final{% endif %}">
+                                    <div class="d-flex">
+                                        <div class="timeline-dot {% if history.is_final %}final{% endif %}"></div>
+                                        <div class="flex-grow-1">
+                                            <div class="weight-change">
+                                                <span>{{ history.previous_weight }} kg</span>
+                                                <span class="weight-arrow"><i class="fas fa-arrow-right"></i></span>
+                                                <span>{{ history.new_weight }} kg</span>
+                                                
+                                                {% with diff=history.new_weight|sub:history.previous_weight %}
+                                                    {% if diff > 0 %}
+                                                        <span class="weight-diff positive">
+                                                            <i class="fas fa-arrow-up me-1"></i> +{{ diff }} kg
+                                                        </span>
+                                                    {% elif diff < 0 %}
+                                                        <span class="weight-diff negative">
+                                                            <i class="fas fa-arrow-down me-1"></i> {{ diff }} kg
+                                                        </span>
+                                                    {% else %}
+                                                        <span class="weight-diff neutral">
+                                                            <i class="fas fa-minus me-1"></i> Bez zmian
+                                                        </span>
+                                                    {% endif %}
+                                                {% endwith %}
+                                                
+                                                {% if history.is_final %}
+                                                    <span class="badge bg-danger ms-2">Finalna waga</span>
+                                                {% endif %}
+                                            </div>
+                                            
+                                            <div class="weight-timestamp">
+                                                <i class="far fa-clock me-1"></i> {{ history.changed_at|date:"d.m.Y H:i:s" }}
+                                                
+                                                {% if history.changed_by %}
+                                                    <span class="ms-3">
+                                                        <i class="fas fa-user me-1"></i> {{ history.changed_by.username }}
+                                                    </span>
+                                                {% endif %}
+                                            </div>
+                                            
+                                            {% if history.notes %}
+                                                <div class="mt-2 text-muted">
+                                                    <i class="fas fa-comment me-1"></i> {{ history.notes }}
+                                                </div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="no-history">
+                            <i class="fas fa-info-circle me-2 fs-4 text-muted"></i>
+                            <p class="mb-0">Brak historii wagi dla tej torby.</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

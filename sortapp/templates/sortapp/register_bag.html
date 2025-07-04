@@ -56,10 +56,11 @@
 
     .form-section {
         background-color: white;
-        border-radius: 15px;
-        padding: 20px;
+        border-radius: 8px;
+        box-shadow: 0 0 15px rgba(0, 0, 0, 0.05);
+        padding: 25px;
         margin-bottom: 30px;
-        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        max-width: 100%;
     }
 
     .form-section-title {
@@ -70,9 +71,10 @@
     }
 
     .btn-tablet {
-        padding: 15px 30px;
-        font-size: 1.25rem;
-        border-radius: 10px;
+        min-width: 120px;
+        padding: 12px 20px;
+        font-size: 1rem;
+        touch-action: manipulation;
     }
 
     /* Hide the original radio buttons */
@@ -124,14 +126,22 @@
     .employee-grid {
         display: grid;
         grid-template-columns: repeat(2, 1fr);
-        gap: 15px;
-        margin-top: 20px;
-        margin-bottom: 20px;
+        gap: 10px;
+        margin-top: 15px;
+        max-width: 100%;
+        justify-content: center;
     }
 
     @media (min-width: 576px) {
         .employee-grid {
             grid-template-columns: repeat(3, 1fr);
+        }
+    }
+
+    @media (min-width: 768px) and (max-width: 1024px) {
+        .employee-grid {
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
         }
     }
 
@@ -212,8 +222,10 @@
     .category-grid {
         display: grid;
         grid-template-columns: repeat(2, 1fr);
-        gap: 15px;
-        margin-bottom: 20px;
+        gap: 10px;
+        margin-top: 15px;
+        max-width: 100%;
+        justify-content: center;
     }
 
     /* Form validation */
@@ -228,10 +240,13 @@
 
     /* Weight adjustment buttons */
     .weight-adjust {
-        min-width: 42px;
-        padding: 0.375rem 0.25rem;
+        min-width: 50px;
+        padding: 0.5rem 0.375rem;
         font-weight: 500;
         transition: all 0.2s ease;
+        touch-action: manipulation;
+        border-radius: 4px;
+        font-size: 1rem;
     }
 
     .weight-adjust:active {
@@ -241,22 +256,35 @@
     .weight-buttons {
         display: flex;
         flex-wrap: wrap;
-        gap: 8px;
-        margin-top: 10px;
+        gap: 12px;
+        margin-top: 15px;
+        justify-content: center;
+        max-width: 400px;
+        margin-left: auto;
+        margin-right: auto;
     }
 
     #{{ form.weight.id_for_label }} {
-        border-radius: 4px;
-        font-size: 1.2rem;
-        height: 48px;
+        border-radius: 6px;
+        font-size: 1.3rem;
+        height: 52px;
         text-align: center;
         font-weight: 500;
         background-color: #f8f9fa;
+        width: 100%;
+        max-width: 300px;
+        margin: 0 auto;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        border: 1px solid #ced4da;
     }
 
     .weight-actions {
         display: flex;
-        gap: 10px;
+        gap: 15px;
+        margin-top: 20px;
+        max-width: 300px;
+        margin-left: auto;
+        margin-right: auto;
     }
 
     .weight-actions button {
@@ -270,6 +298,42 @@
         }
     }
 
+    @media (min-width: 768px) and (max-width: 1024px) {
+        .weight-adjust {
+            min-width: 65px;
+            height: 50px;
+            font-size: 1.2rem;
+            margin: 0 3px;
+        }
+
+        .weight-buttons {
+            gap: 15px;
+            max-width: 450px;
+            margin-bottom: 20px;
+        }
+
+        .btn-tablet {
+            min-width: 140px;
+            padding: 12px 24px;
+        }
+
+        #{{ form.weight.id_for_label }} {
+            height: 60px;
+            max-width: 320px;
+            font-size: 1.4rem;
+            margin-bottom: 15px;
+        }
+
+        .weight-actions {
+            max-width: 320px;
+        }
+
+        .weight-actions button {
+            padding: 12px 20px;
+            font-size: 1.1rem;
+        }
+    }
+
     .was-validated .form-control:valid,
     .form-control.is-valid {
         border-color: #198754;
@@ -280,11 +344,17 @@
     }
 
     /* Step indicator styles */
+    /* Steps indicator */
     .steps-indicator {
         display: flex;
         justify-content: space-between;
-        margin-bottom: 30px;
+        margin-bottom: 3rem;
         position: relative;
+        width: 100%;
+        max-width: 800px;
+        margin-left: auto;
+        margin-right: auto;
+        padding: 0 10px;
     }
 
     .steps-indicator::after {
@@ -330,9 +400,11 @@
     }
 
     .step-label {
-        font-size: 0.9rem;
+        font-size: 0.85rem;
         color: #6c757d;
         text-align: center;
+        white-space: nowrap;
+        margin-top: 8px;
     }
 
     .step.active .step-label {
@@ -362,6 +434,10 @@
 
     .btn-next, .btn-prev {
         min-width: 120px;
+        touch-action: manipulation;
+        padding: 10px 20px;
+        border-radius: 6px;
+        font-weight: 500;
     }
 
     /* Summary styles */
@@ -384,6 +460,42 @@
     @media (min-width: 768px) {
         .category-grid {
             grid-template-columns: repeat(4, 1fr);
+        }
+    }
+
+    /* Improve form layout specifically for iPads */
+    @media only screen
+    and (min-device-width: 768px)
+    and (max-device-width: 1024px) {
+        .weight-buttons {
+            margin: 20px auto;
+        }
+
+        .form-section {
+            margin: 0 auto 30px auto;
+            max-width: 90%;
+        }
+
+        .btn-next, .btn-prev {
+            min-width: 150px;
+            padding: 12px 24px;
+        }
+    }
+
+    @media (min-width: 768px) and (max-width: 1024px) {
+        .category-grid {
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+        }
+
+        .form-section {
+            padding: 20px;
+            margin-bottom: 25px;
+        }
+
+        .form-section-title {
+            font-size: 1.2rem;
+            margin-bottom: 1.2rem;
         }
     }
 </style>
@@ -523,24 +635,16 @@
                     <label for="{{ form.weight.id_for_label }}" class="form-label">{{ form.weight.label }}</label>
                     <div class="mb-2">
                         {{ form.weight }}
-                    </div>
-                    <div class="alert alert-info mt-2 mb-2">
-                        <i class="fas fa-info-circle me-2"></i> Wprowadź całkowitą wagę w kilogramach
-                    </div>
-                    <div class="weight-actions mt-2 mb-1">
-                        <button type="button" class="btn btn-sm btn-outline-secondary" id="clearWeightBtn">Wyczyść</button>
                         <button type="button" class="btn btn-sm btn-outline-secondary" id="resetWeightBtn">Resetuj</button>
                     </div>
                     <div class="form-text mb-2">Użyj przycisków poniżej, aby szybko zmienić wagę:</div>
                     <div class="weight-buttons">
-                        <button type="button" class="btn btn-outline-danger weight-adjust" data-amount="-5">-5</button>
-                        <button type="button" class="btn btn-outline-danger weight-adjust" data-amount="-1">-1</button>
                         <button type="button" class="btn btn-outline-success weight-adjust" data-amount="1">+1</button>
                         <button type="button" class="btn btn-outline-success weight-adjust" data-amount="5">+5</button>
                         <button type="button" class="btn btn-outline-success weight-adjust" data-amount="10">+10</button>
                         <button type="button" class="btn btn-outline-success weight-adjust" data-amount="20">+20</button>
+                        <button type="button" class="btn btn-outline-success weight-adjust" data-amount="50">+50</button>
                     </div>
-                    <div class="form-text mt-2">{{ form.weight.help_text }}</div>
                     {% if form.weight.errors %}
                     <div class="alert alert-danger mt-2">
                         {{ form.weight.errors }}
@@ -552,7 +656,7 @@
                     <button type="button" class="btn btn-outline-secondary btn-prev btn-tablet">
                         <i class="fas fa-arrow-left me-1"></i> Wstecz
                     </button>
-                    <button type="button" class="btn btn-primary btn-tablet" id="step3Next" disabled>
+                    <button type="button" class="btn btn-primary btn-tablet" id="step3Next">
                         Dalej <i class="fas fa-arrow-right ms-1"></i>
                     </button>
                 </div>
@@ -638,7 +742,6 @@
         // Clear and reset weight buttons
         document.getElementById('resetWeightBtn').addEventListener('click', function() {
             weightInput.value = "0";
-            validateWeightInput();
             weightInput.focus();
             weightInput.select();
         });
@@ -746,10 +849,7 @@
 
         // No need to handle change directly as we're using the cards instead
 
-        // Handle weight input
-        weightInput.addEventListener('input', function() {
-            validateWeightInput();
-        });
+
 
         // Handle weight adjustment buttons
         document.querySelectorAll('.weight-adjust').forEach(button => {
@@ -779,54 +879,15 @@
                     this.classList.remove('active');
                 }, 150);
 
-                // Trigger validation
-                validateWeightInput();
+
 
                 // Focus back on the weight input
                 weightInput.focus();
             });
         });
 
-        // Function to validate weight input
-        function validateWeightInput() {
-            // Ensure value is a clean integer
-            const value = parseInt(weightInput.value);
-            const isValid = weightInput.value && !isNaN(value) && value > 0 && /^\d+$/.test(weightInput.value.trim());
 
-            step3Next.disabled = !isValid;
 
-            if (isValid) {
-                weightInput.classList.remove('is-invalid');
-                weightInput.classList.add('is-valid');
-
-                // Format value as integer
-                const formattedValue = parseInt(weightInput.value);
-
-                // Only update if the value is different to avoid cursor position reset
-                if (formattedValue !== parseInt(weightInput.value)) {
-                    // Save cursor position
-                    const cursorPosition = weightInput.selectionStart;
-                    const hadFocus = weightInput.matches(':focus');
-
-                    // Update value
-                    weightInput.value = formattedValue;
-
-                    // Restore cursor position if focused
-                    if (hadFocus) {
-                        weightInput.setSelectionRange(cursorPosition, cursorPosition);
-                    } else {
-                        weightInput.select();
-                    }
-                }
-            } else {
-                weightInput.classList.remove('is-valid');
-                if (weightInput.value) {
-                    weightInput.classList.add('is-invalid');
-                    // Show error message for invalid input
-                    showError("Wprowadź prawidłową wagę w kilogramach (liczba całkowita większa od zera)");
-                }
-            }
-        }
 
         // Navigate to next step
         step1Next.addEventListener('click', function() {
@@ -952,20 +1013,7 @@
                         weightInput.focus();
                         weightInput.select();
 
-                        // Handle keyboard event listener to handle number keys for faster input
-                        const handleKeydown = function(e) {
-                            // If a number key is pressed, clear the field first
-                            if ((e.key >= '0' && e.key <= '9') && !e.ctrlKey && !e.altKey && !e.metaKey) {
-                                if (weightInput.selectionStart === 0 && weightInput.selectionEnd === weightInput.value.length) {
-                                    // Already selected all, don't need to clear
-                                } else {
-                                    weightInput.value = '';
-                                }
-                            } else if (e.key === '.' || e.key === ',') {
-                                // Prevent decimal point or comma for integer input
-                                e.preventDefault();
-                            }
-                        };
+
 
                         // Use this listener persistently
                         weightInput.addEventListener('keydown', handleKeydown);

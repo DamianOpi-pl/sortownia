@@ -63,7 +63,7 @@ class BagAdmin(admin.ModelAdmin):
     def get_fieldsets(self, request, obj=None):
         fieldsets = [
             ('Informacje podstawowe', {
-                'fields': ('bag_number', 'weight', 'prepared_by', 'clothing_type', 'assigned_to')
+                'fields': ('bag_number', 'weight', 'clothing_type', 'assigned_to')
             }),
             ('Informacje o sortowaniu', {
                 'fields': ('is_sorted', 'sorted_by', 'sorted_at')
@@ -82,7 +82,7 @@ class IncomingClothingAdmin(admin.ModelAdmin):
     list_display = ('name', 'active', 'icon', 'color')
     list_filter = ('active',)
     search_fields = ('name', 'description')
-    
+
     fieldsets = [
         ('Podstawowe informacje', {
             'fields': ('name', 'description', 'active')
@@ -98,7 +98,7 @@ class SortedClothingCategoryAdmin(admin.ModelAdmin):
     list_display = ('name', 'active', 'icon', 'color')
     list_filter = ('active',)
     search_fields = ('name', 'description')
-    
+
     fieldsets = [
         ('Podstawowe informacje', {
             'fields': ('name', 'description', 'active')
@@ -116,7 +116,7 @@ class SortedBagAdmin(admin.ModelAdmin):
     search_fields = ('bag_number',)
     date_hierarchy = 'created_at'
     readonly_fields = ('created_at',)
-    
+
     fieldsets = [
         ('Informacje podstawowe', {
             'fields': ('bag_number', 'weight', 'clothing_category', 'prepared_by')

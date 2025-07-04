@@ -8,96 +8,236 @@
 {% block extra_css %}
 <style>
     .filter-section {
-        background-color: #f8f9fa;
+        background-color: rgba(107, 185, 7, 0.05);
         border-radius: 10px;
         padding: 20px;
         margin-bottom: 20px;
         box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        border: 1px solid rgba(107, 185, 7, 0.1);
+    }
+    
+    /* Bag list styling */
+    .bag-list {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 16px;
+        margin-top: 20px;
     }
 
-    .table th {
-        position: sticky;
-        top: 0;
+    /* Bag card styling */
+    .bag-card {
         background-color: white;
-        z-index: 10;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        border-radius: 0;
+        border: 1px solid #dee2e6;
+        overflow: hidden;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        display: flex;
+        flex-direction: column;
     }
 
+    .bag-card-body {
+        padding: 16px;
+        position: relative;
+        overflow: hidden;
+        cursor: pointer;
+        flex-grow: 1;
+    }
+
+    .bag-card-actions {
+        display: flex;
+        height: 48px;
+    }
+
+    .btn-action {
+        flex: 1;
+        border-radius: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border: none;
+        margin: 0;
+        font-size: 1.1rem;
+        height: 100%;
+    }
+    
+    .info-button {
+        background-color: #6bb907;
+        color: white;
+    }
+    
+    .print-button {
+        background-color: #6c757d;
+        color: white;
+    }
+
+    /* Bag elements styling */
+    .bag-number {
+        font-weight: 600;
+        font-size: 0.95rem;
+    }
+
+    .bag-weight {
+        font-weight: 500;
+        font-size: 0.85rem;
+        color: #212529;
+    }
+    
     .category-badge {
         padding: 6px 10px;
         border-radius: 20px;
         color: white;
         font-weight: 500;
         display: inline-block;
-        min-width: 120px;
+        margin-top: 10px;
+        margin-bottom: 10px;
+    }
+    
+    .status-badge {
+        padding: 5px 10px;
+        border-radius: 20px;
+        font-weight: 500;
+        display: inline-block;
+        min-width: 80px;
         text-align: center;
     }
 
     .employee-badge {
-        display: inline-flex;
+        display: flex;
         align-items: center;
-        padding: 5px 10px;
-        border-radius: 20px;
-        background-color: #f8f9fa;
-        font-weight: 500;
+        margin-bottom: 10px;
     }
-
-    .employee-initials {
+    
+    .employee-circle {
         width: 30px;
         height: 30px;
+        background-color: #333;
+        color: white;
         border-radius: 50%;
         display: flex;
         align-items: center;
         justify-content: center;
         font-weight: bold;
-        color: white;
         margin-right: 8px;
     }
-
-    .action-buttons {
-        display: flex;
-        gap: 5px;
-    }
-
-    .action-buttons .btn {
-        padding: 5px 10px;
+    
+    .employee-name {
         font-size: 0.9rem;
+        font-weight: 500;
+    }
+    
+    .date-info {
+        font-size: 0.8rem;
+        color: #6c757d;
     }
 
-    .table-responsive {
-        max-height: 70vh;
-        overflow-y: auto;
+    /* Empty state styling */
+    .empty-state {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        padding: 2rem 1rem;
+        background-color: white;
+        border: 1px solid #dee2e6;
+        margin: 2rem auto;
+        max-width: 500px;
+    }
+
+    .empty-state-icon {
+        font-size: 3rem;
+        color: #6bb907;
+        margin-bottom: 1rem;
+    }
+    
+    /* Pagination styling */
+    .pagination-container {
+        display: flex;
+        justify-content: center;
+        margin-top: 30px;
+    }
+    
+    .pagination {
+        display: inline-flex;
+        background-color: white;
+    }
+    
+    .page-item .page-link {
+        border: none;
+        width: 40px;
+        height: 40px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #495057;
+        background-color: #f8f9fa;
+        margin: 0 2px;
+    }
+    
+    .page-item.active .page-link {
+        background-color: #007bff;
+        color: white;
+    }
+    
+    .page-item.disabled .page-link {
+        color: #6c757d;
+        opacity: 0.5;
+        background-color: #f8f9fa;
+    }
+
+    /* Ripple effect */
+    .ripple {
+        position: absolute;
+        background-color: rgba(0, 0, 0, 0.1);
+        border-radius: 50%;
+        transform: scale(0);
+        animation: ripple 0.6s linear;
+        pointer-events: none;
+    }
+
+    @keyframes ripple {
+        to {
+            transform: scale(2);
+            opacity: 0;
+        }
+    }
+    
+    /* Add ripple effect for clicks */
+    .bag-card-body::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        cursor: pointer;
     }
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="row mb-4">
-    <div class="col-md-12">
-        <div class="d-flex justify-content-between align-items-center mb-3">
-            <div>
-                <a href="{% url 'register_sorted_bag' %}" class="btn btn-primary">
-                    <i class="fas fa-plus-circle me-2"></i> Dodaj nową torbę (S-bag)
-                </a>
-                <a href="{% url 'sorted_bag_stats' %}" class="btn btn-info text-white ms-2">
-                    <i class="fas fa-chart-bar me-2"></i> Statystyki S-bags
-                </a>
-            </div>
-            <div>
-                <span class="badge bg-primary rounded-pill fs-6">
-                    <i class="fas fa-boxes me-1"></i> Łącznie: {{ sorted_bags|length }} toreb
-                </span>
-            </div>
+<div class="container-fluid px-0">
+    <!-- Header with filters -->
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h5 class="mb-0"><i class="fas fa-tags me-2" style="color: #6bb907;"></i> Worki posortowane</h5>
+        <div class="d-flex">
+            <button class="btn me-2" style="background-color: #6bb907; color: white;" type="button" data-bs-toggle="collapse" data-bs-target="#filtersCollapse">
+                <i class="fas fa-filter me-2"></i> Filtry
+            </button>
+            <a href="{% url 'register_sorted_bag' %}" class="btn me-2" style="background-color: #6bb907; color: white;">
+                <i class="fas fa-plus-circle me-2"></i> Dodaj
+            </a>
+            <a href="{% url 'home' %}" class="btn btn-outline-secondary">
+                <i class="fas fa-home me-2"></i> Strona główna
+            </a>
         </div>
     </div>
-</div>
 
-<div class="row">
-    <div class="col-md-12">
+    <!-- Filters -->
+    <div class="collapse mb-4" id="filtersCollapse">
         <div class="filter-section">
-            <h5 class="mb-3"><i class="fas fa-filter me-2"></i> Filtry</h5>
             <form method="get" action="{% url 'sorted_bags' %}" class="row g-3">
-                <div class="col-md-4">
+                <div class="col-md-3">
                     <label for="date" class="form-label">Data</label>
                     <select name="date" id="date" class="form-select">
                         <option value="">Wszystkie daty</option>
@@ -106,7 +246,7 @@
                         {% endfor %}
                     </select>
                 </div>
-                <div class="col-md-4">
+                <div class="col-md-3">
                     <label for="category" class="form-label">Kategoria</label>
                     <select name="category" id="category" class="form-select">
                         <option value="all">Wszystkie kategorie</option>
@@ -115,7 +255,7 @@
                         {% endfor %}
                     </select>
                 </div>
-                <div class="col-md-4">
+                <div class="col-md-3">
                     <label for="employee" class="form-label">Pracownik</label>
                     <select name="employee" id="employee" class="form-select">
                         <option value="all">Wszyscy pracownicy</option>
@@ -124,76 +264,166 @@
                         {% endfor %}
                     </select>
                 </div>
-                <div class="col-12 text-end">
-                    <button type="submit" class="btn btn-primary">
-                        <i class="fas fa-search me-2"></i> Filtruj
+                <div class="col-md-3">
+                    <label for="status" class="form-label">Status</label>
+                    <select name="status" id="status" class="form-select">
+                        <option value="all" {% if selected_status == "all" or not selected_status %}selected{% endif %}>Wszystkie torby</option>
+                        <option value="open" {% if selected_status == "open" %}selected{% endif %}>Otwarte</option>
+                        <option value="closed" {% if selected_status == "closed" %}selected{% endif %}>Zamknięte</option>
+                    </select>
+                </div>
+                <div class="col-12 d-flex justify-content-end">
+                    <button type="submit" class="btn me-2" style="background-color: #6bb907; color: white;">
+                        <i class="fas fa-search me-2"></i> Zastosuj filtry
                     </button>
-                    <a href="{% url 'sorted_bags' %}" class="btn btn-outline-secondary ms-2">
-                        <i class="fas fa-undo me-2"></i> Resetuj filtry
-                    </a>
+                    <a href="{% url 'sorted_bags' %}" class="btn btn-outline-secondary">Wyczyść filtry</a>
                 </div>
             </form>
         </div>
     </div>
-</div>
 
-<div class="row">
-    <div class="col-md-12">
-        {% if sorted_bags %}
-            <div class="table-responsive">
-                <table class="table table-hover">
-                    <thead>
-                        <tr>
-                            <th>Numer torby</th>
-                            <th>Kategoria</th>
-                            <th>Waga</th>
-                            <th>Przygotowane przez</th>
-                            <th>Data utworzenia</th>
-                            <th>Akcje</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for bag in sorted_bags %}
-                            <tr>
-                                <td><strong>{{ bag.bag_number }}</strong></td>
-                                <td>
-                                    <span class="category-badge" style="background-color: {{ bag.clothing_category.color }}">
-                                        <i class="fas {{ bag.clothing_category.icon }} me-2"></i>
-                                        {{ bag.clothing_category.name }}
-                                    </span>
-                                </td>
-                                <td>{{ bag.weight|format_weight }}</td>
-                                <td>
-                                    {% if bag.prepared_by %}
-                                        <span class="employee-badge">
-                                            <span class="employee-initials" style="background-color: {{ bag.prepared_by.icon_color }}">
-                                                {{ bag.prepared_by.name|first|upper }}
-                                            </span>
-                                            {{ bag.prepared_by.name }}
-                                        </span>
-                                    {% else %}
-                                        <span class="text-muted">Nie przypisano</span>
+    {% if sorted_bags %}
+        <div class="bag-list">
+            {% for bag in sorted_bags %}
+            <div class="bag-card" data-bag-id="{{ bag.id }}">
+                <!-- Main info -->
+                <div class="bag-card-body" onclick="window.location.href='{% url 'update_sorted_bag' bag.id %}';">
+                    <!-- Bag number and weight -->
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div class="bag-number">
+                            <i class="fas fa-barcode me-1"></i> {{ bag.bag_number }}
+                        </div>
+                        <div class="bag-weight">
+                            <i class="fas fa-weight-hanging me-1"></i> {{ bag.weight|format_weight }}
+                        </div>
+                    </div>
+                    
+                    <!-- Category -->
+                    <div class="text-center">
+                        <span class="category-badge" style="background-color: {{ bag.clothing_category.color }}">
+                            <i class="fas {{ bag.clothing_category.icon }} me-2"></i>
+                            {{ bag.clothing_category.name }}
+                        </span>
+                    </div>
+                    
+                    <!-- Employee badge -->
+                    <div class="employee-badge">
+                        <div class="employee-circle" style="background-color: {{ bag.prepared_by.icon_color|default:'#333' }}">
+                            {% if bag.prepared_by %}
+                                {{ bag.prepared_by.name|first }}
+                            {% else %}
+                                ?
+                            {% endif %}
+                        </div>
+                        <span class="employee-name">
+                            {% if bag.prepared_by %}
+                                {{ bag.prepared_by.name }}
+                            {% else %}
+                                Nie przypisano
+                            {% endif %}
+                        </span>
+                    </div>
+                    
+                    <!-- Date and Status -->
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div class="date-info">
+                            <i class="fas fa-calendar me-1"></i> {{ bag.created_at|date:"d.m.Y H:i" }}
+                        </div>
+                        <div>
+                            {% if bag.is_closed %}
+                                <span class="badge bg-secondary">
+                                    <i class="fas fa-lock me-1"></i> Zamknięta
+                                    {% if bag.closed_at %}
+                                        <small>({{ bag.closed_at|date:"d.m.Y" }})</small>
                                     {% endif %}
-                                </td>
-                                <td>{{ bag.created_at|date:"d.m.Y H:i" }}</td>
-                                <td>
-                                    <div class="action-buttons">
-                                        <a href="{% url 'update_sorted_bag' bag.id %}" class="btn btn-sm btn-outline-primary">
-                                            <i class="fas fa-edit"></i> Edytuj
-                                        </a>
-                                        <!-- Additional actions can be added here -->
-                                    </div>
-                                </td>
-                            </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
+                                </span>
+                            {% else %}
+                                <span class="badge" style="background-color: #6bb907;">
+                                    <i class="fas fa-unlock me-1"></i> Otwarta
+                                </span>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Action buttons -->
+                <div class="bag-card-actions">
+                    <a href="{% url 'update_sorted_bag' bag.id %}" class="btn btn-action info-button">
+                        <i class="fas fa-info-circle"></i>
+                    </a>
+                    <a href="{% url 'sorted_bag_weight_history' bag.id %}" class="btn btn-action print-button">
+                        <i class="fas fa-history"></i>
+                    </a>
+                </div>
             </div>
-        {% else %}
-            <div class="alert alert-info">
-                <i class="fas fa-info-circle me-2"></i> Brak posortowanych toreb spełniających kryteria wyszukiwania.
+            {% endfor %}
+        </div>
+        
+        <!-- Pagination -->
+        <div class="pagination-container text-center mt-4 mb-3">
+            <nav aria-label="Nawigacja po stronach">
+                <ul class="pagination justify-content-center">
+                    {% if sorted_bags.has_previous %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ sorted_bags.previous_page_number }}{% if selected_date %}&date={{ selected_date }}{% endif %}{% if selected_category != 'all' %}&category={{ selected_category }}{% endif %}{% if selected_employee != 'all' %}&employee={{ selected_employee }}{% endif %}{% if selected_status != 'all' %}&status={{ selected_status }}{% endif %}" aria-label="Poprzednia">
+                                <span aria-hidden="true">&laquo;</span>
+                            </a>
+                        </li>
+                    {% else %}
+                        <li class="page-item disabled">
+                            <span class="page-link">&laquo;</span>
+                        </li>
+                    {% endif %}
+
+                    {% for i in sorted_bags.paginator.page_range %}
+                        {% if sorted_bags.number == i %}
+                            <li class="page-item active"><span class="page-link">{{ i }}</span></li>
+                        {% elif i > sorted_bags.number|add:"-3" and i < sorted_bags.number|add:"3" %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ i }}{% if selected_date %}&date={{ selected_date }}{% endif %}{% if selected_category != 'all' %}&category={{ selected_category }}{% endif %}{% if selected_employee != 'all' %}&employee={{ selected_employee }}{% endif %}{% if selected_status != 'all' %}&status={{ selected_status }}{% endif %}">{{ i }}</a>
+                            </li>
+                        {% endif %}
+                    {% endfor %}
+
+                    {% if sorted_bags.has_next %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ sorted_bags.next_page_number }}{% if selected_date %}&date={{ selected_date }}{% endif %}{% if selected_category != 'all' %}&category={{ selected_category }}{% endif %}{% if selected_employee != 'all' %}&employee={{ selected_employee }}{% endif %}{% if selected_status != 'all' %}&status={{ selected_status }}{% endif %}" aria-label="Następna">
+                                <span aria-hidden="true">&raquo;</span>
+                            </a>
+                        </li>
+                    {% else %}
+                        <li class="page-item disabled">
+                            <span class="page-link">&raquo;</span>
+                        </li>
+                    {% endif %}
+                </ul>
+            </nav>
+        </div>
+    {% else %}
+        <div class="empty-state">
+            <div class="empty-state-icon">
+                <i class="fas fa-exclamation-circle"></i>
             </div>
-        {% endif %}
-    </div>
+            <h5>Brak posortowanych worków</h5>
+            <p class="text-muted mb-4">
+                {% if selected_date or selected_category != 'all' or selected_employee != 'all' or selected_status != 'all' %}
+                    Brak worków pasujących do wybranych filtrów.
+                {% else %}
+                    Nie zarejestrowano jeszcze żadnych posortowanych worków.
+                {% endif %}
+            </p>
+            <div class="d-flex justify-content-center">
+                {% if selected_date or selected_category != 'all' or selected_employee != 'all' or selected_status != 'all' %}
+                    <a href="{% url 'sorted_bags' %}" class="btn" style="background-color: #6bb907; color: white;">
+                        <i class="fas fa-filter me-2"></i> Wyczyść filtry
+                    </a>
+                {% else %}
+                    <a href="{% url 'register_sorted_bag' %}" class="btn" style="background-color: #6bb907; color: white;">
+                        <i class="fas fa-plus-circle me-2"></i> Dodaj nowy worek
+                    </a>
+                {% endif %}
+            </div>
+        </div>
+    {% endif %}
 </div>
 {% endblock %}
